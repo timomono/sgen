@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from logging import getLogger
-
 from base_config import config
+from build import build
 
 logger = getLogger(__name__)
 
@@ -22,7 +22,7 @@ class Build(Command):
     name = "build"
 
     def run(self):
-        print(config.BASE_DIR)
+        build(config().SRC_DIR)
 
 
 commands: list[Command] = [Build()]
