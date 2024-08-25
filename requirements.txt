@@ -1,1 +1,2 @@
 Jinja2
+py2exe; sys_platform =='windows'
