@@ -4,15 +4,20 @@ import shutil
 from base_config import config
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from logging import getLogger
+import os
+
+from localization.templatetag import TransIncludeExtension
 
 logger = getLogger(__name__)
 
 
 def build(srcDir: Path) -> None:
+    isUseLocalization = config().LOCALE_CONFIG is not None
     env = Environment(
         loader=FileSystemLoader(srcDir),
         trim_blocks=True,
         autoescape=select_autoescape(),
+        extensions=[TransIncludeExtension] if isUseLocalization else [],
     )
     files = srcDir.glob("**/*.html")
     exportDir = config().BASE_DIR / "build"
@@ -23,7 +28,23 @@ def build(srcDir: Path) -> None:
     for file in files:
         if file in config().IGNORE_FILES:
             continue
-        if config().LOCALE_CONFIG is not None:
+        if isUseLocalization:
+            localeDir: Path = config().LOCALE_CONFIG.LOCALE_DIR  # type: ignore
+            localeFiles = localeDir.glob("*.json")
+            locales = list(
+                map(lambda f: ".".join(f.name.split(".")[:-1]), localeFiles)
+            )
+            print(list(map(lambda locale: srcDir / locale, locales)))
+            print(file)
+            if True in list(
+                map(
+                    lambda locale: str(file.resolve()).startswith(
+                        str((srcDir / locale).resolve())
+                    ),
+                    locales,
+                )
+            ):
+                continue
             buildWithLocalization(srcDir, env, file)
             continue
         templateName = str(file.relative_to(srcDir))
@@ -48,8 +69,29 @@ def buildWithLocalization(srcDir: Path, env: Environment, file: Path):
     )
     localesStr = "[" + ",".join(map(lambda s: f'"{s.upper()}"', locales)) + "]"
     with open(exportDir / "index.html", "w") as f:
-        f.write(
-            f"""
+        f.write(localeRedirectIndex(localesStr))
+
+    for locale in locales:
+        os.environ["buildLang"] = locale
+        localeFile = localeDir / f"{locale}.json"
+        with open(localeFile, "r") as f:
+            localeJson = json.load(f)
+        buildLocaleDir = exportDir / locale
+        if not buildLocaleDir.exists():
+            buildLocaleDir.mkdir()
+
+        templateName = str(file.relative_to(srcDir))
+        template = env.get_template(templateName)
+        exportPath = buildLocaleDir / file.relative_to(srcDir)
+        if not (exportPath.parent.exists()):
+            exportPath.parent.mkdir()
+        with open(exportPath, "w") as f:
+            f.write(template.render(trans=localeJson))
+    del os.environ["buildLang"]
+
+
+def localeRedirectIndex(localesStr: str) -> str:
+    return f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -76,20 +118,4 @@ def buildWithLocalization(srcDir: Path, env: Environment, file: Path):
     </script>
 </body>
 </html>
-"""
-        )
-    for locale in locales:
-        localeFile = localeDir / f"{locale}.json"
-        with open(localeFile, "r") as f:
-            localeJson = json.load(f)
-        buildLocaleDir = exportDir / locale
-        if not buildLocaleDir.exists():
-            buildLocaleDir.mkdir()
-
-        templateName = str(file.relative_to(srcDir))
-        template = env.get_template(templateName)
-        exportPath = buildLocaleDir / file.relative_to(srcDir)
-        if not (exportPath.parent.exists()):
-            exportPath.parent.mkdir()
-        with open(exportPath, "w") as f:
-            f.write(template.render(trans=localeJson))
+    """
