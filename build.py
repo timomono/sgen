@@ -7,13 +7,13 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-def build(srcDir: Path):
+def build(srcDir: Path) -> None:
     env = Environment(
         loader=FileSystemLoader(srcDir),
         trim_blocks=True,
         autoescape=select_autoescape(),
     )
-    files = srcDir.glob("*")
+    files = srcDir.glob("**/*.html")
     exportDir = config().BASE_DIR / "build"
     if exportDir.exists():
         logger.warn("Build directory already exists. Removing...")
@@ -22,10 +22,14 @@ def build(srcDir: Path):
     for file in files:
         if file in config().IGNORE_FILES:
             continue
-        template = env.get_template(str(file.name))
+        templateName = str(file.relative_to(srcDir))
+        template = env.get_template(templateName)
         # result = template.render()
         # with open(file, mode="r") as f:
         #     template = Template(f.read())
-        with open(exportDir / file.name, "w") as f:
+        exportPath = exportDir / file.relative_to(srcDir)
+        if not (exportPath.parent.exists()):
+            exportPath.parent.mkdir()
+        with open(exportDir / file.relative_to(srcDir), "w") as f:
             f.write(template.render())
     logger.warn("Successfully built!")
