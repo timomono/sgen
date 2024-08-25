@@ -23,7 +23,7 @@ def main():
         raise CommandNotFoundError(f'Command "{sys.argv[1]}" not found')
     if len(cmd) != 1:
         raise CommandNameDuplicateError()
-    cmd[0].run()
+    cmd[0].run(sys.argv[2:])
 
 
 if __name__ == "__main__":
