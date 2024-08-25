@@ -12,7 +12,8 @@ from minify import minify
 logger = getLogger(__name__)
 
 
-def build(srcDir: Path) -> None:
+def build() -> None:
+    srcDir = config().SRC_DIR
     isUseLocalization = config().LOCALE_CONFIG is not None
     env = Environment(
         loader=FileSystemLoader(srcDir),

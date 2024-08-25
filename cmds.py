@@ -23,7 +23,6 @@ class Build(Command):
 
     def run(self, param: dict):
         from build import build  # type: ignore
-        from base_config import config
 
         if len(param) != 0:
             raise TypeError(
@@ -31,7 +30,21 @@ class Build(Command):
                 f"(got {len(param)}, excepted 0)"
             )
 
-        build(config().SRC_DIR)
+        build()
+
+
+class ListenChange(Command):
+    name = "listen"
+
+    def run(self, param: dict):
+        from detect_change import listenChange
+
+        if len(param) != 0:
+            raise TypeError(
+                f"Too many or too few arguments "
+                f"(got {len(param)}, excepted 0)"
+            )
+        listenChange()
 
 
 def createProjIgnoreTree(dir: str, filenames: list[str]) -> Iterable[str]:
@@ -91,4 +104,4 @@ class CreateProject(Command):
                 f.write(body)
 
 
-commands: list[Command] = [Build(), CreateProject()]
+commands: list[Command] = [Build(), CreateProject(), ListenChange()]
