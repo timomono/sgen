@@ -15,9 +15,22 @@ class LocalizationConfig(ABC):
         return "en"
 
 
-"""
+class MinifyConfig(ABC):
+    """Minify option.
+    Automatic minification at build time.
+    """
 
-"""
+    JSRemoveBr = False
+    """Remove break line for JS.
+
+    Note that a missing semicolon will result in an error.
+    """
+
+    HTMLRemoveBr = False
+    """Remove break line for HTML.
+
+    Note that a missing semicolon will result in an error in script tag.
+    """
 
 
 class BaseConfig(ABC):
@@ -76,23 +89,13 @@ class BaseConfig(ABC):
     ```
     """
 
+    @property
+    def MINIFY_CONFIG(self) -> None | MinifyConfig:
+        """Minify configuration.
 
-class MINIFY_CONFIG(ABC):
-    """Minify option.
-    Automatic minification at build time.
-    """
-
-    JSRemoveBr = False
-    """Remove break line for JS.
-
-    Note that a missing semicolon will result in an error.
-    """
-
-    HTMLRemoveBr = False
-    """Remove break line for HTML.
-
-    Note that a missing semicolon will result in an error in script tag.
-    """
+        Set None to skip minify.
+        """
+        return None if self.DEBUG else MinifyConfig()
 
 
 # class Config:

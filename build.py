@@ -7,6 +7,7 @@ from logging import getLogger
 import os
 
 from localization.templatetag import TransIncludeExtension
+from minify import minify
 
 logger = getLogger(__name__)
 
@@ -34,8 +35,6 @@ def build(srcDir: Path) -> None:
             locales = list(
                 map(lambda f: ".".join(f.name.split(".")[:-1]), localeFiles)
             )
-            print(list(map(lambda locale: srcDir / locale, locales)))
-            print(file)
             if True in list(
                 map(
                     lambda locale: str(file.resolve()).startswith(
@@ -56,7 +55,7 @@ def build(srcDir: Path) -> None:
         if not (exportPath.parent.exists()):
             exportPath.parent.mkdir()
         with open(exportDir / file.relative_to(srcDir), "w") as f:
-            f.write(template.render())
+            f.write(minify(template.render(), file.suffix[1:]))
     logger.warn("Successfully built!")
 
 
@@ -86,12 +85,13 @@ def buildWithLocalization(srcDir: Path, env: Environment, file: Path):
         if not (exportPath.parent.exists()):
             exportPath.parent.mkdir()
         with open(exportPath, "w") as f:
-            f.write(template.render(trans=localeJson))
+            f.write(minify(template.render(trans=localeJson), file.suffix[1:]))
     del os.environ["buildLang"]
 
 
 def localeRedirectIndex(localesStr: str) -> str:
-    return f"""
+    return minify(
+        f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -118,4 +118,7 @@ def localeRedirectIndex(localesStr: str) -> str:
     </script>
 </body>
 </html>
-    """
+    """,
+        ext="html",
+        HTMLRemoveBr=True,
+    )
