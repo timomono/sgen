@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 import shutil
 from base_config import config
@@ -22,6 +23,9 @@ def build(srcDir: Path) -> None:
     for file in files:
         if file in config().IGNORE_FILES:
             continue
+        if config().LOCALE_CONFIG is not None:
+            buildWithLocalization(srcDir, env, file)
+            continue
         templateName = str(file.relative_to(srcDir))
         template = env.get_template(templateName)
         # result = template.render()
@@ -33,3 +37,59 @@ def build(srcDir: Path) -> None:
         with open(exportDir / file.relative_to(srcDir), "w") as f:
             f.write(template.render())
     logger.warn("Successfully built!")
+
+
+def buildWithLocalization(srcDir: Path, env: Environment, file: Path):
+    exportDir = config().BASE_DIR / "build"
+    localeDir: Path = config().LOCALE_CONFIG.LOCALE_DIR  # type: ignore
+    localeFiles = localeDir.glob("*.json")
+    locales = list(
+        map(lambda f: ".".join(f.name.split(".")[:-1]), localeFiles)
+    )
+    localesStr = "[" + ",".join(map(lambda s: f'"{s.upper()}"', locales)) + "]"
+    with open(exportDir / "index.html", "w") as f:
+        f.write(
+            f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+</head>
+<body>
+    <script>
+    const lang = navigator.languages.map(
+        (e) => e.toUpperCase()).map((lang) => {{
+        console.log({localesStr});console.log(lang);
+            for (const spLang of {localesStr}){{
+                if (lang.toUpperCase().includes(spLang)){{return spLang}}
+            }}
+            return undefined;
+        }}
+    )[0];
+    console.log(lang);
+    if (lang == undefined){{
+        location.href = {config().LOCALE_CONFIG.DEFAULT_LANG}
+    }}
+    location.href = "./" + lang.toLowerCase() + "/";
+    </script>
+</body>
+</html>
+"""
+        )
+    for locale in locales:
+        localeFile = localeDir / f"{locale}.json"
+        with open(localeFile, "r") as f:
+            localeJson = json.load(f)
+        buildLocaleDir = exportDir / locale
+        if not buildLocaleDir.exists():
+            buildLocaleDir.mkdir()
+
+        templateName = str(file.relative_to(srcDir))
+        template = env.get_template(templateName)
+        exportPath = buildLocaleDir / file.relative_to(srcDir)
+        if not (exportPath.parent.exists()):
+            exportPath.parent.mkdir()
+        with open(exportPath, "w") as f:
+            f.write(template.render(trans=localeJson))

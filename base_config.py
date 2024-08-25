@@ -5,6 +5,16 @@ from pathlib import Path
 import importlib
 
 
+class LocalizationConfig(ABC):
+    @property
+    def LOCALE_DIR(self) -> Path:
+        return config().BASE_DIR / "locale"
+
+    @property
+    def DEFAULT_LANG(self) -> str:
+        return "en"
+
+
 class BaseConfig(ABC):
     @property
     @abstractmethod
@@ -20,6 +30,8 @@ class BaseConfig(ABC):
         return [
             self.SRC_DIR / "base.html",
         ]
+
+    LOCALE_CONFIG: None | LocalizationConfig = None
 
 
 # class Config:
