@@ -3,6 +3,8 @@ from logging import getLogger
 from pathlib import Path
 from typing import Iterable
 
+from base_config import config
+
 logger = getLogger(__name__)
 
 
@@ -13,7 +15,7 @@ class Command(ABC):
         pass
 
     @abstractmethod
-    def run(self, param: dict):
+    def run(self, param: list):
         pass
 
 
@@ -21,7 +23,7 @@ class Build(Command):
     # pass
     name = "build"
 
-    def run(self, param: dict):
+    def run(self, param: list):
         from build import build  # type: ignore
 
         if len(param) != 0:
@@ -36,7 +38,7 @@ class Build(Command):
 class ListenChange(Command):
     name = "listen"
 
-    def run(self, param: dict):
+    def run(self, param: list):
         from detect_change import listenChange
 
         if len(param) != 0:
@@ -45,6 +47,41 @@ class ListenChange(Command):
                 f"(got {len(param)}, excepted 0)"
             )
         listenChange()
+
+
+class HttpServer(Command):
+    name = "runserver"
+
+    def run(self, param: list):
+        if len(param) >= 1:
+            raise TypeError(
+                f"Too many or too few arguments "
+                f"(got {len(param)}, excepted 0 to 1)"
+            )
+        if len(param) == 1:
+            runserver(param[0])
+        else:
+            runserver()
+
+
+def runserver(port: int = 8282):
+    import http.server
+    import socketserver
+
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(
+                *args, directory=str(config().BASE_DIR / "build"), **kwargs
+            )
+
+    with socketserver.TCPServer(("", port), Handler) as httpd:
+        logger.warn(
+            f"serving at port {port} http://localhost:{port}",
+        )
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            return
 
 
 def createProjIgnoreTree(dir: str, filenames: list[str]) -> Iterable[str]:
@@ -62,7 +99,7 @@ def createProjIgnoreTree(dir: str, filenames: list[str]) -> Iterable[str]:
 class CreateProject(Command):
     name = "create"
 
-    def run(self, param):
+    def run(self, param: list):
         from shutil import copytree
 
         if len(param) != 1:
@@ -104,4 +141,9 @@ class CreateProject(Command):
                 f.write(body)
 
 
-commands: list[Command] = [Build(), CreateProject(), ListenChange()]
+commands: list[Command] = [
+    Build(),
+    CreateProject(),
+    ListenChange(),
+    HttpServer(),
+]
