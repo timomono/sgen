@@ -3,22 +3,24 @@ from base_config import BaseConfig, LocalizationConfig
 
 
 class Config(BaseConfig):
-    DEBUG = False
-    """Debug mode.
+    @property
+    def DEBUG(self):
+        return False
 
-    Set it to False when deploying.
-    """
-    BASE_DIR = Path(__file__).resolve().parent
-    """Project base directory."""
-    LOCALE_CONFIG = LocalizationConfig()
-    """Localization configuration.
+    @property
+    def BASE_DIR(self):
+        return Path(__file__).resolve().parent
 
-    Set none to turn off localization.
+    @property
+    def LOCALE_CONFIG(self):
+        return [LocalizationConfig()]
 
-    ### Example
-    ```python
-    class Config(BaseConfig):
-        BASE_DIR = Path(__file__).resolve().parent
-        LOCALE_CONFIG = LocalizationConfig()
-    ```
-    """
+    @property
+    def IGNORE_FILES(self):
+        return [
+            self.SRC_DIR / "base.html",
+        ]
+
+    @property
+    def MIDDLEWARE(self):
+        return []

@@ -7,7 +7,7 @@ from logging import getLogger
 import os
 
 from localization.templatetag import TransIncludeExtension
-from minify import minify
+from sgen_minifier import minify
 
 logger = getLogger(__name__)
 

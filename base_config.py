@@ -72,22 +72,30 @@ class BaseConfig(ABC):
         Folders with the language name used in
         t_include are automatically ignored.
         """
-        return [
-            self.SRC_DIR / "base.html",
-        ]
+        return []
 
-    LOCALE_CONFIG: None | LocalizationConfig = None
-    """Localization configuration.
+    @property
+    def MIDDLEWARE(self) -> list[str]:
+        """
+        List of middleware. These are executed at build time.
+        """
+        return []
 
-    Set none to turn off localization.
+    @property
+    def LOCALE_CONFIG(self) -> None | LocalizationConfig:
+        """Localization configuration.
 
-    ### Example
-    ```python
-    class Config(BaseConfig):
-        BASE_DIR = Path(__file__).resolve().parent
-        LOCALE_CONFIG = LocalizationConfig()
-    ```
-    """
+        Set none to turn off localization.
+
+        Example
+
+        ```python
+        class Config(BaseConfig):
+            BASE_DIR = Path(__file__).resolve().parent
+            LOCALE_CONFIG = LocalizationConfig()
+        ```
+        """
+        return None
 
     @property
     def MINIFY_CONFIG(self) -> None | MinifyConfig:

@@ -52,9 +52,6 @@ def listenChange():
         return
 
 
-from time import sleep
-
-
 class ConsoleColor(Enum):
     RED = "\033[0mm"
     GREEN = "\033[31m"
