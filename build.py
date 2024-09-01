@@ -24,7 +24,7 @@ def build() -> None:
     files = srcDir.glob("**/*.html")
     exportDir = config().BASE_DIR / "build"
     if exportDir.exists():
-        logger.warn("Build directory already exists. Removing...")
+        logger.info("Build directory already exists. Removing...")
         shutil.rmtree(exportDir)
     exportDir.mkdir()
     for file in files:
@@ -57,7 +57,6 @@ def build() -> None:
             exportPath.parent.mkdir()
         with open(exportDir / file.relative_to(srcDir), "w") as f:
             f.write(minify(template.render(), file.suffix[1:]))
-    logger.warn("Successfully built!")
 
 
 def buildWithLocalization(srcDir: Path, env: Environment, file: Path):

@@ -1,4 +1,7 @@
 {
     "hello": "Hello",
-    "hey": "Hey!"
+    "hey": "Hey!",
+    "site_gen_demo": "Site gen demo",
+    "home": "Home",
+    "this_is_page1": "This is page1."
 }
