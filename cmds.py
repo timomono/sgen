@@ -124,8 +124,68 @@ class CreateProject(Command):
                 return
 
         copytree(
-            Path(__file__).parent / "example",
+            Path(__file__).parent / "templates" / "project",
             param[0],
+            dirs_exist_ok=True,
+            ignore=createProjIgnoreTree,
+        )
+
+        for file in projPath.glob("**/*"):
+            if file.is_dir():
+                continue
+            with open(file, "r") as f:
+                body = f.read()
+                body = body.replace(
+                    "{{project_name}}", projPath.resolve().name
+                )
+            with open(file, "w") as f:
+                f.write(body)
+
+
+class ExampleNotFoundError(NotImplementedError):
+    pass
+
+
+class CreateExampleProj(Command):
+    name = "example"
+
+    def run(self, param: list):
+        from shutil import copytree
+
+        if len(param) != 2:
+            raise TypeError(
+                f"Too many or too few arguments "
+                f"(got {len(param)}, excepted 1)"
+            )
+
+        exampleName: str = param[0]
+        if "/" in exampleName or "\\" in exampleName:
+            raise ExampleNotFoundError(
+                "Example name include slash or backslash."
+            )
+        examplePath = Path(__file__).parent / "example" / param[0]
+        projPath = Path(param[1])
+
+        if not examplePath.exists():
+            raise ExampleNotFoundError(
+                f'Example "{exampleName} not implemented. '
+            )
+
+        if projPath.exists():
+            try:
+                prompt = input(
+                    f"{projPath} is already exists. override? (y/n): "
+                )
+            except KeyboardInterrupt:
+                logger.warn("Cancelled by user. ")
+                return
+            if not (prompt.lower() == "y" or prompt.lower() == "yes"):
+                logger.warn("Cancelled by user. ")
+                return
+
+        copytree(
+            examplePath,
+            projPath,
             dirs_exist_ok=True,
             ignore=createProjIgnoreTree,
         )
@@ -147,4 +207,5 @@ commands: list[Command] = [
     CreateProject(),
     ListenChange(),
     HttpServer(),
+    CreateExampleProj(),
 ]

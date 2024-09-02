@@ -6,7 +6,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from logging import getLogger
 import os
 
-from localization.templatetag import TransIncludeExtension
+from stdlib.localization.templatetag import TransIncludeExtension
 from sgen_minifier import minify
 
 logger = getLogger(__name__)
