@@ -1,5 +1,7 @@
 {
     "cSpell.words": [
-        "sgen"
+        "closurecompiler",
+        "sgen",
+        "smini"
     ]
 }

@@ -13,7 +13,7 @@ class Config(BaseConfig):
 
     @property
     def LOCALE_CONFIG(self):
-        return [LocalizationConfig()]
+        return LocalizationConfig()
 
     @property
     def IGNORE_FILES(self):

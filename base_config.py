@@ -4,6 +4,8 @@ import importlib.util
 from pathlib import Path
 import importlib
 
+from base_middleware import BaseMiddleware
+
 
 class LocalizationConfig(ABC):
     @property
@@ -13,24 +15,6 @@ class LocalizationConfig(ABC):
     @property
     def DEFAULT_LANG(self) -> str:
         return "en"
-
-
-class MinifyConfig(ABC):
-    """Minify option.
-    Automatic minification at build time.
-    """
-
-    JSRemoveBr = False
-    """Remove break line for JS.
-
-    Note that a missing semicolon will result in an error.
-    """
-
-    HTMLRemoveBr = False
-    """Remove break line for HTML.
-
-    Note that a missing semicolon will result in an error in script tag.
-    """
 
 
 class BaseConfig(ABC):
@@ -75,7 +59,7 @@ class BaseConfig(ABC):
         return []
 
     @property
-    def MIDDLEWARE(self) -> list[str]:
+    def MIDDLEWARE(self) -> list[BaseMiddleware]:
         """
         List of middleware. These are executed at build time.
         """
@@ -96,14 +80,6 @@ class BaseConfig(ABC):
         ```
         """
         return None
-
-    @property
-    def MINIFY_CONFIG(self) -> None | MinifyConfig:
-        """Minify configuration.
-
-        Set None to skip minify.
-        """
-        return None if self.DEBUG else MinifyConfig()
 
 
 # class Config:

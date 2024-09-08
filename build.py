@@ -7,7 +7,7 @@ from logging import getLogger
 import os
 
 from stdlib.localization.templatetag import TransIncludeExtension
-from sgen_minifier import minify
+from stdlib.smini.smini import minify
 
 logger = getLogger(__name__)
 
@@ -21,13 +21,15 @@ def build() -> None:
         autoescape=select_autoescape(),
         extensions=[TransIncludeExtension] if isUseLocalization else [],
     )
-    files = srcDir.glob("**/*.html")
+    files = srcDir.glob("**/*")
     exportDir = config().BASE_DIR / "build"
     if exportDir.exists():
         logger.info("Build directory already exists. Removing...")
         shutil.rmtree(exportDir)
     exportDir.mkdir()
     for file in files:
+        if file.is_dir():
+            continue
         if file in config().IGNORE_FILES:
             continue
         if isUseLocalization:
@@ -56,12 +58,28 @@ def build() -> None:
         if not (exportPath.parent.exists()):
             exportPath.parent.mkdir()
         with open(exportDir / file.relative_to(srcDir), "w") as f:
-            f.write(minify(template.render(), file.suffix[1:]))
+            f.write(template.render())
+    for middleware in config().MIDDLEWARE:
+        middleware.do(exportDir)
+
+
+class NoLangFoundException(Exception):
+    def __init__(self, message="hwy") -> None:
+        self.message = (
+            "No language for localization found. "
+            "Currently LOCALE_DIR is set to"
+            ' "{config().LOCALE_CONFIG.LOCALE_DIR}".'  # type:ignore
+        )
+        super().__init__(self.message)
 
 
 def buildWithLocalization(srcDir: Path, env: Environment, file: Path):
     exportDir = config().BASE_DIR / "build"
     localeDir: Path = config().LOCALE_CONFIG.LOCALE_DIR  # type: ignore
+    if not localeDir.exists():
+        raise FileNotFoundError(
+            "LOCALE_DIR specified in config.py does not exist"
+        )
     localeFiles = localeDir.glob("*.json")
     locales = list(
         map(lambda f: ".".join(f.name.split(".")[:-1]), localeFiles)
@@ -69,6 +87,9 @@ def buildWithLocalization(srcDir: Path, env: Environment, file: Path):
     localesStr = "[" + ",".join(map(lambda s: f'"{s.upper()}"', locales)) + "]"
     with open(exportDir / "index.html", "w") as f:
         f.write(localeRedirectIndex(localesStr))
+
+    if locales == []:
+        raise NoLangFoundException()
 
     for locale in locales:
         os.environ["buildLang"] = locale
@@ -85,8 +106,9 @@ def buildWithLocalization(srcDir: Path, env: Environment, file: Path):
         if not (exportPath.parent.exists()):
             exportPath.parent.mkdir()
         with open(exportPath, "w") as f:
-            f.write(minify(template.render(trans=localeJson), file.suffix[1:]))
-    del os.environ["buildLang"]
+            f.write(template.render(trans=localeJson))
+    if "buildLang" in os.environ:
+        del os.environ["buildLang"]
 
 
 def localeRedirectIndex(localesStr: str) -> str:
