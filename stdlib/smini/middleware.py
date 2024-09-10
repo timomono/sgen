@@ -1,7 +1,7 @@
 from abc import ABC
 from pathlib import Path
 from typing import override
-from base_config import config
+from get_config import sgen_config
 from base_middleware import BaseMiddleware
 from stdlib.smini.smini import minify
 
@@ -34,7 +34,7 @@ class SminiMiddleware(BaseMiddleware):
 
     @override
     def do(self, build_path: Path):
-        if self.config.except_debug and config().DEBUG:
+        if self.config.except_debug and sgen_config.DEBUG:
             return
         for filePath in build_path.glob("**/*.js"):
             with open(filePath, "r") as f:

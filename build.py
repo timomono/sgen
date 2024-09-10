@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
 import shutil
-from base_config import config
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from logging import getLogger
 import os
+from get_config import sgen_config
 
 from stdlib.localization.templatetag import TransIncludeExtension
 from stdlib.smini.smini import minify
@@ -13,8 +13,8 @@ logger = getLogger(__name__)
 
 
 def build() -> None:
-    srcDir = config().SRC_DIR
-    isUseLocalization = config().LOCALE_CONFIG is not None
+    srcDir = sgen_config.SRC_DIR
+    isUseLocalization = sgen_config.LOCALE_CONFIG is not None
     env = Environment(
         loader=FileSystemLoader(srcDir),
         trim_blocks=True,
@@ -22,18 +22,17 @@ def build() -> None:
         extensions=[TransIncludeExtension] if isUseLocalization else [],
     )
     files = srcDir.glob("**/*")
-    exportDir = config().BASE_DIR / "build"
-    if exportDir.exists():
+    if sgen_config.BUILD_DIR.exists():
         logger.info("Build directory already exists. Removing...")
-        shutil.rmtree(exportDir)
-    exportDir.mkdir()
+        shutil.rmtree(sgen_config.BUILD_DIR)
+    sgen_config.BUILD_DIR.mkdir()
     for file in files:
         if file.is_dir():
             continue
-        if file in config().IGNORE_FILES:
+        if file in sgen_config.IGNORE_FILES:
             continue
         if isUseLocalization:
-            localeDir: Path = config().LOCALE_CONFIG.LOCALE_DIR  # type: ignore
+            localeDir: Path = sgen_config.LOCALE_CONFIG.LOCALE_DIR  # type: ignore
             localeFiles = localeDir.glob("*.json")
             locales = list(
                 map(lambda f: ".".join(f.name.split(".")[:-1]), localeFiles)
@@ -54,13 +53,13 @@ def build() -> None:
         # result = template.render()
         # with open(file, mode="r") as f:
         #     template = Template(f.read())
-        exportPath = exportDir / file.relative_to(srcDir)
+        exportPath = sgen_config.BUILD_DIR / file.relative_to(srcDir)
         if not (exportPath.parent.exists()):
             exportPath.parent.mkdir()
-        with open(exportDir / file.relative_to(srcDir), "w") as f:
+        with open(sgen_config.BUILD_DIR / file.relative_to(srcDir), "w") as f:
             f.write(template.render())
-    for middleware in config().MIDDLEWARE:
-        middleware.do(exportDir)
+    for middleware in sgen_config.MIDDLEWARE:
+        middleware.do(sgen_config.BUILD_DIR)
 
 
 class NoLangFoundException(Exception):
@@ -68,14 +67,13 @@ class NoLangFoundException(Exception):
         self.message = (
             "No language for localization found. "
             "Currently LOCALE_DIR is set to"
-            ' "{config().LOCALE_CONFIG.LOCALE_DIR}".'  # type:ignore
+            f' "{sgen_config.LOCALE_CONFIG.LOCALE_DIR}".'  # type:ignore
         )
         super().__init__(self.message)
 
 
 def buildWithLocalization(srcDir: Path, env: Environment, file: Path):
-    exportDir = config().BASE_DIR / "build"
-    localeDir: Path = config().LOCALE_CONFIG.LOCALE_DIR  # type: ignore
+    localeDir: Path = sgen_config.LOCALE_CONFIG.LOCALE_DIR  # type: ignore
     if not localeDir.exists():
         raise FileNotFoundError(
             "LOCALE_DIR specified in config.py does not exist"
@@ -85,7 +83,7 @@ def buildWithLocalization(srcDir: Path, env: Environment, file: Path):
         map(lambda f: ".".join(f.name.split(".")[:-1]), localeFiles)
     )
     localesStr = "[" + ",".join(map(lambda s: f'"{s.upper()}"', locales)) + "]"
-    with open(exportDir / "index.html", "w") as f:
+    with open(sgen_config.BUILD_DIR / "index.html", "w") as f:
         f.write(localeRedirectIndex(localesStr))
 
     if locales == []:
@@ -96,7 +94,7 @@ def buildWithLocalization(srcDir: Path, env: Environment, file: Path):
         localeFile = localeDir / f"{locale}.json"
         with open(localeFile, "r") as f:
             localeJson = json.load(f)
-        buildLocaleDir = exportDir / locale
+        buildLocaleDir = sgen_config.BUILD_DIR / locale
         if not buildLocaleDir.exists():
             buildLocaleDir.mkdir()
 
@@ -134,7 +132,7 @@ def localeRedirectIndex(localesStr: str) -> str:
     )[0];
     console.log(lang);
     if (lang == undefined){{
-        location.href = {config().LOCALE_CONFIG.DEFAULT_LANG}"""  # type:ignore
+        location.href = {sgen_config.LOCALE_CONFIG.DEFAULT_LANG}"""  # type:ignore
         f"""
     }}
     location.href = "./" + lang.toLowerCase() + "/";

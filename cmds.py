@@ -3,7 +3,7 @@ from logging import getLogger
 from pathlib import Path
 from typing import Iterable
 
-from base_config import config
+from get_config import sgen_config
 
 logger = getLogger(__name__)
 
@@ -72,7 +72,7 @@ def runserver(port: int = 8282):
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
             super().__init__(
-                *args, directory=str(config().BASE_DIR / "build"), **kwargs
+                *args, directory=str(sgen_config.BASE_DIR / "build"), **kwargs
             )
 
     with socketserver.TCPServer(("", port), Handler) as httpd:

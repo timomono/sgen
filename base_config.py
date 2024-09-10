@@ -1,16 +1,14 @@
 from abc import ABC, abstractmethod
 from importlib.machinery import ModuleSpec
-import importlib.util
 from pathlib import Path
-import importlib
-
 from base_middleware import BaseMiddleware
+import importlib.util
 
 
 class LocalizationConfig(ABC):
     @property
     def LOCALE_DIR(self) -> Path:
-        return config().BASE_DIR / "locale"
+        return sgen_config.BASE_DIR / "locale"
 
     @property
     def DEFAULT_LANG(self) -> str:
@@ -48,6 +46,11 @@ class BaseConfig(ABC):
         return self.BASE_DIR / "src"
 
     @property
+    def BUILD_DIR(self) -> Path:
+        """Built output directory."""
+        return self.BASE_DIR / "build"
+
+    @property
     def IGNORE_FILES(self) -> list[Path]:
         """Files that will not be included in the build.
 
@@ -82,22 +85,7 @@ class BaseConfig(ABC):
         return None
 
 
-# class Config:
-#     def __getattribute__(self, name: str) -> Any:
-#         configFile = Path("./config.py")
-#         # importlib.util.spec_from_file_location(name, configFile)
-#         spec: ModuleSpec = importlib.util.spec_from_file_location(
-#             "config", configFile
-#         )  # type: ignore
-#         module = importlib.util.module_from_spec(spec)
-#         spec.loader.exec_module(module)  # type: ignore
-#         return getattr(module.Config, name)
-
-
-# config = Config()
-
-
-def config() -> BaseConfig:
+def get_config() -> "BaseConfig":
     configFile = Path("./config.py")
     # importlib.util.spec_from_file_location(name, configFile)
     spec: ModuleSpec = importlib.util.spec_from_file_location(
@@ -105,4 +93,8 @@ def config() -> BaseConfig:
     )  # type: ignore
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)  # type: ignore
-    return module.Config()
+    configClass: type = getattr(module, "Config")
+    return configClass()
+
+
+sgen_config = get_config()

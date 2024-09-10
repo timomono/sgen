@@ -1,4 +1,4 @@
-from base_config import config
+from base_config import sgen_config
 from jinja2.ext import Extension
 from jinja2 import nodes
 import os
@@ -30,12 +30,12 @@ class TransIncludeExtension(Extension):
             raise TypeError(f'Specified "{args[0]}" isn\'t html file.')
         try:
             with open(
-                config().SRC_DIR / os.environ["buildLang"] / args[0]
+                sgen_config.SRC_DIR / os.environ["buildLang"] / args[0]
             ) as f:
                 return f.read()
         except FileNotFoundError:
             raise FileNotFoundError(
                 f'Included file "{args[0]}" not found '
                 "(Tried to load from "
-                f'{config().SRC_DIR / os.environ["buildLang"] / args[0]})'
+                f'{sgen_config.SRC_DIR / os.environ["buildLang"] / args[0]})'
             )

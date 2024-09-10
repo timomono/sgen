@@ -4,12 +4,12 @@ from pathlib import Path
 from time import sleep
 from typing import Generator
 
-from base_config import config
 from logging import getLogger
 
 from build import build  # type:ignore
 import shutil
 import atexit
+from get_config import sgen_config
 
 logger = getLogger(__name__)
 
@@ -21,11 +21,11 @@ def listenChange():
         build()
         while True:
             listen_files: Generator[Path, None, None] = Path(
-                config().BASE_DIR
+                sgen_config.BASE_DIR
             ).glob("**/*")
             for filepath in listen_files:
                 if str(filepath.resolve()).startswith(
-                    str((config().BASE_DIR / "build").resolve())
+                    str((sgen_config.BASE_DIR / "build").resolve())
                 ):
                     continue
                 old_time = mTimes.get(filepath)
