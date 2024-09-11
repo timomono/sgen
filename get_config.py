@@ -4,7 +4,6 @@ from importlib.machinery import ModuleSpec
 from pathlib import Path
 import importlib.util
 
-print(TYPE_CHECKING)
 if TYPE_CHECKING:
     from base_config import BaseConfig
 
@@ -21,4 +20,14 @@ def get_config() -> "BaseConfig":
     return configClass()
 
 
-sgen_config = get_config()
+class ConfigGlobal:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(ConfigGlobal, cls).__new__(cls)
+            cls.config_instance = get_config()
+        return cls._instance
+
+
+sgen_config = ConfigGlobal().config_instance

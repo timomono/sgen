@@ -1,7 +1,7 @@
 from enum import Enum
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 compilerJarFile = (
     Path(__file__).parent.parent.parent
@@ -25,6 +25,7 @@ def compileByText(
     compile_level: CompileLevel = CompileLevel.SIMPLE_OPTIMIZATIONS,
     options: list[str] = [],
 ) -> str:
+
     options += [
         "java",
         "-jar",
@@ -49,16 +50,17 @@ def compileByText(
     return compiledText.stdout
 
 
-def valueWithArgName(arg_name: str, values: list[Any]):
+def valueWithArgName(arg_name: str, values: Iterable[Any]):
     params: list[str] = []
-    for filename in values:
+    for value in values:
         params.append(arg_name)
-        params.append(str(filename))
+        params.append(str(value))
+    return params
 
 
 def compileByFilenames(
-    input_js_filename: list[Path],
-    output_js_filename: list[Path],
+    input_js_filename: Iterable[Path],
+    output_js_filename: Path,
     compile_level: CompileLevel = CompileLevel.SIMPLE_OPTIMIZATIONS,
     options: list[str] = [],
 ):
@@ -71,6 +73,7 @@ def compileByFilenames(
         + valueWithArgName("--js", input_js_filename)
         + [
             "--js_output_file",
+            str(output_js_filename),
             "--compilation_level",
             compile_level.name,
         ]
@@ -82,7 +85,7 @@ def compileByFilenames(
         stderr=subprocess.PIPE,
         text=True,
     )
-    if compiledText.stderr != "The compiler is waiting for input via stdin.\n":
+    if compiledText.stderr != "":
         raise CompileError(
             "Error when running closure-compiler: \n"
             + compiledText.stderr.replace(

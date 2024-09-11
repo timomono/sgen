@@ -1,18 +1,6 @@
 from abc import ABC, abstractmethod
-from importlib.machinery import ModuleSpec
 from pathlib import Path
 from base_middleware import BaseMiddleware
-import importlib.util
-
-
-class LocalizationConfig(ABC):
-    @property
-    def LOCALE_DIR(self) -> Path:
-        return sgen_config.BASE_DIR / "locale"
-
-    @property
-    def DEFAULT_LANG(self) -> str:
-        return "en"
 
 
 class BaseConfig(ABC):
@@ -67,34 +55,3 @@ class BaseConfig(ABC):
         List of middleware. These are executed at build time.
         """
         return []
-
-    @property
-    def LOCALE_CONFIG(self) -> None | LocalizationConfig:
-        """Localization configuration.
-
-        Set none to turn off localization.
-
-        Example
-
-        ```python
-        class Config(BaseConfig):
-            BASE_DIR = Path(__file__).resolve().parent
-            LOCALE_CONFIG = LocalizationConfig()
-        ```
-        """
-        return None
-
-
-def get_config() -> "BaseConfig":
-    configFile = Path("./config.py")
-    # importlib.util.spec_from_file_location(name, configFile)
-    spec: ModuleSpec = importlib.util.spec_from_file_location(
-        "config", configFile
-    )  # type: ignore
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)  # type: ignore
-    configClass: type = getattr(module, "Config")
-    return configClass()
-
-
-sgen_config = get_config()
