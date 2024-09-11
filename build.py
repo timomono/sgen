@@ -3,7 +3,10 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from logging import getLogger
 from get_config import sgen_config
 
-from stdlib.localization.templatetag import TransIncludeExtension
+from stdlib.localization.templatetag import (
+    TransIncludeExtension,
+    TransExtension,
+)
 
 logger = getLogger(__name__)
 
@@ -14,7 +17,7 @@ def build() -> None:
         loader=FileSystemLoader(srcDir),
         trim_blocks=True,
         autoescape=select_autoescape(),
-        extensions=[TransIncludeExtension],
+        extensions=[TransIncludeExtension, TransExtension],
     )
     files = srcDir.glob("**/*")
     if sgen_config.BUILD_DIR.exists():

@@ -3,7 +3,6 @@ from logging import getLogger
 from pathlib import Path
 from typing import Iterable
 
-from get_config import sgen_config
 
 logger = getLogger(__name__)
 
@@ -68,6 +67,7 @@ class HttpServer(Command):
 def runserver(port: int = 8282):
     import http.server
     import socketserver
+    from get_config import sgen_config
 
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
@@ -168,7 +168,7 @@ class CreateExampleProj(Command):
 
         if not examplePath.exists():
             raise ExampleNotFoundError(
-                f'Example "{exampleName} not implemented. '
+                f'Example "{exampleName}" not implemented. '
             )
 
         if projPath.exists():
