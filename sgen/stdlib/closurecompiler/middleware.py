@@ -2,8 +2,11 @@ import os
 from pathlib import Path
 import re
 from typing import override
-from base_middleware import BaseMiddleware
-from stdlib.closurecompiler.compile import CompileLevel, compileByFilenames
+from sgen.base_middleware import BaseMiddleware
+from sgen.stdlib.closurecompiler.compile import (
+    CompileLevel,
+    compileByFilenames,
+)
 
 
 class ClosureCompilerMiddleware(BaseMiddleware):
@@ -23,7 +26,7 @@ class ClosureCompilerMiddleware(BaseMiddleware):
 
     @override
     def do(self, build_path: Path):
-        from get_config import sgen_config
+        from sgen.get_config import sgen_config
 
         if self.except_debug and sgen_config.DEBUG:
             return

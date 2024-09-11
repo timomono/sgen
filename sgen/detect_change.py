@@ -22,7 +22,7 @@ def listenChange():
         while True:
             listen_files: Generator[Path, None, None] = Path(
                 sgen_config.BASE_DIR
-            ).glob("**/*")
+            ).glob("**/[!build]*")
             for filepath in listen_files:
                 if str(filepath.resolve()).startswith(
                     str((sgen_config.BASE_DIR / "build").resolve())
@@ -36,10 +36,14 @@ def listenChange():
                 elif mtime > old_time:
                     fPrint(
                         f"{filepath} changed, rebuilding. ",
-                        color=ConsoleColor.GREEN,
+                        color=ConsoleColor.YELLOW,
                     )
                     try:
                         build()
+                        fPrint(
+                            f"{filepath} changed, built. ",
+                            color=ConsoleColor.GREEN,
+                        )
                     except Exception as e:
                         fPrint(
                             f"Error while building: {e}",
@@ -47,14 +51,17 @@ def listenChange():
                         )
                         # logger.warn("Error while building: ")
                         # logger.exception(e)
-            sleep(0.3)
+
+                sleep(0.3)
     except KeyboardInterrupt:
+        clean()
         return
 
 
 class ConsoleColor(Enum):
-    RED = "\033[0mm"
-    GREEN = "\033[31m"
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
 
 
 def fPrint(s, color: ConsoleColor | None = None):
