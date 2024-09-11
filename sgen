@@ -1,6 +1,0 @@
-#!/bin/zsh
-cdir="$(pwd)"
-cd $(dirname "$0")
-cliFile="$(realpath cli.py)"
-cd "$cdir"
-python3 "$cliFile" $@

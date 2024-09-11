@@ -39,7 +39,7 @@ class ListenChange(Command):
     name = "listen"
 
     def run(self, param: list):
-        from detect_change import listenChange
+        from sgen.detect_change import listenChange
 
         if len(param) != 0:
             raise TypeError(
@@ -67,7 +67,7 @@ class HttpServer(Command):
 def runserver(port: int = 8282):
     import http.server
     import socketserver
-    from get_config import sgen_config
+    from sgen.get_config import sgen_config
 
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):

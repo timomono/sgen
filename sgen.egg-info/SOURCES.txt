@@ -1,0 +1,14 @@
+README.md
+setup.py
+sgen/base_config.py
+sgen/base_middleware.py
+sgen/build.py
+sgen/cli.py
+sgen/cmds.py
+sgen/detect_change.py
+sgen/get_config.py
+sgen.egg-info/PKG-INFO
+sgen.egg-info/SOURCES.txt
+sgen.egg-info/dependency_links.txt
+sgen.egg-info/entry_points.txt
+sgen.egg-info/top_level.txt

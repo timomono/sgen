@@ -1,9 +1,9 @@
 import shutil
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from logging import getLogger
-from get_config import sgen_config
+from sgen.get_config import sgen_config
 
-from stdlib.localization.templatetag import (
+from sgen.stdlib.localization.templatetag import (
     TransIncludeExtension,
     TransExtension,
 )

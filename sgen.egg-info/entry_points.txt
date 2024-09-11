@@ -1,0 +1,2 @@
+[console_scripts]
+sgen = sgen.cli:main

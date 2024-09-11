@@ -1,5 +1,5 @@
 import sys
-import cmds
+from sgen import cmds
 
 
 class CommandNotFoundError(NotImplementedError):

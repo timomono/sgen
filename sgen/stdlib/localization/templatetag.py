@@ -1,4 +1,4 @@
-from get_config import sgen_config
+from sgen.get_config import sgen_config
 from jinja2.ext import Extension
 from jinja2 import nodes
 import os

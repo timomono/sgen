@@ -6,10 +6,10 @@ from typing import Generator
 
 from logging import getLogger
 
-from build import build  # type:ignore
+from sgen.build import build  # type:ignore
 import shutil
 import atexit
-from get_config import sgen_config
+from sgen.get_config import sgen_config
 
 logger = getLogger(__name__)
 

@@ -1,5 +1,7 @@
 from setuptools import setup
 
-import py2exe  # type: ignore # NOQA
-
-setup(console=["cli.py"])
+setup(
+    console=["cli.py"],
+    packages=["sgen"],
+    entry_points={"console_scripts": ["sgen = sgen.cli:main"]},
+)

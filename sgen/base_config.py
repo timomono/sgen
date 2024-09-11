@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from base_middleware import BaseMiddleware
+from sgen.base_middleware import BaseMiddleware
 
 
 class BaseConfig(ABC):

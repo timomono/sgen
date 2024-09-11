@@ -2,8 +2,8 @@ import json
 from pathlib import Path
 import shutil
 from typing import override
-from base_middleware import BaseMiddleware
-from stdlib.smini.smini import minify
+from sgen.base_middleware import BaseMiddleware
+from sgen.stdlib.smini.smini import minify
 import re
 
 
@@ -12,7 +12,7 @@ class LocalizationConfig:
 
     @property
     def LOCALE_DIR(self) -> Path:
-        from get_config import sgen_config
+        from sgen.get_config import sgen_config
         return sgen_config.BASE_DIR / "locale"
 
     @property

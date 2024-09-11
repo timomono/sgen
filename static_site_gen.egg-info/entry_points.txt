@@ -1,0 +1,2 @@
+[console_scripts]
+sgen = static_site_gen.cli:main
