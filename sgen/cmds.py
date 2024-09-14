@@ -223,12 +223,13 @@ class CreateExampleProj(Command):
         for file in projPath.glob("**/*"):
             if file.is_dir():
                 continue
-            with open(file, "r") as f:
+            with open(file, "rb") as f:
                 body = f.read()
                 body = body.replace(
-                    "{{project_name}}", projPath.resolve().name
+                    b"{{project_name}}",
+                    projPath.resolve().name.encode("utf-8"),
                 )
-            with open(file, "w") as f:
+            with open(file, "wb") as f:
                 f.write(body)
 
 
