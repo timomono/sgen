@@ -1,6 +1,7 @@
 from sgen.get_config import sgen_config
 from jinja2.ext import Extension
 from jinja2 import nodes
+from markupsafe import Markup
 import os
 
 
@@ -30,7 +31,9 @@ class TransIncludeExtension(Extension):
         if not include_html_filename.endswith(".html"):
             raise TypeError(f'Specified "{args[0]}" isn\'t html file.')
         try:
-            return f'[[trans include (filename:"{include_html_filename}")]]'
+            return Markup(
+                f'[[trans include (filename:"{include_html_filename}")]]'
+            )
             # with open(
             #     sgen_config.SRC_DIR / os.environ["buildLang"] / args[0]
             # ) as f:
@@ -67,7 +70,7 @@ class TransExtension(Extension):
             raise TypeError(f"Unexpected type: {type(args[0])} not str")
         trans_key = args[0]
         try:
-            return f'[[trans (key:"{trans_key}")]]'
+            return Markup(f'[[trans (key:"{trans_key}")]]')
             # with open(
             #     sgen_config.SRC_DIR / os.environ["buildLang"] / args[0]
             # ) as f:

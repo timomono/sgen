@@ -5,6 +5,9 @@ from typing import override
 from sgen.base_middleware import BaseMiddleware
 from sgen.stdlib.smini.smini import minify
 import re
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class LocalizationConfig:
@@ -13,6 +16,7 @@ class LocalizationConfig:
     @property
     def LOCALE_DIR(self) -> Path:
         from sgen.get_config import sgen_config
+
         return sgen_config.BASE_DIR / "locale"
 
     @property
@@ -22,7 +26,8 @@ class LocalizationConfig:
 
 class NoLangFoundException(Exception):
     def __init__(self, message="hwy") -> None:
-        from get_config import sgen_config
+        from sgen.get_config import sgen_config
+
         self.message = (
             "No language for localization found. "
             "Currently LOCALE_DIR is set to"
@@ -72,9 +77,6 @@ class LocalizationMiddleware(BaseMiddleware):
             raise NoLangFoundException()
 
         for locale in locales:
-            localeFile = localeDir / f"{locale}.json"
-            with open(localeFile, "r") as f:
-                localeJson = json.load(f)
             buildLocaleDir = buildPath / locale
             if not buildLocaleDir.exists():
                 buildLocaleDir.mkdir()
@@ -95,13 +97,16 @@ class LocalizationMiddleware(BaseMiddleware):
                     body = f.read()
                 # Apply key translation
                 body = re.sub(
-                    r'\[\[trans \(key:"<key_name>"\)\]\]',
-                    lambda m: get_key_trans_value(m, localeJson),
+                    r'\[\[trans \(key:"(?P<key_name>[a-zA-Z0-9-_.]*)"\)\]\]',
+                    lambda m: get_key_trans_value(
+                        m, localeDir, locale, self.config.DEFAULT_LANG
+                    ),
                     body,
                 )
                 # Apply t_include
                 body = re.sub(
-                    r'\[\[trans include \(filename:"(?P<filename>.*)"\)\]\]',
+                    r"\[\[trans include "
+                    r'\(filename:"(?P<filename>[a-zA-Z0-9-_.]*)"\)\]\]',
                     lambda m: apply_i_include(locale, m.group("filename")),
                     body,
                 )
@@ -112,15 +117,39 @@ class LocalizationMiddleware(BaseMiddleware):
         shutil.rmtree(temp_path)
 
 
-def get_key_trans_value(m: re.Match, localeJson: dict):
+def get_key_trans_value(
+    m: re.Match, localeDir: Path, locale: str, defaultLang: str
+) -> str:
+    key_name = m.group("key_name")
+    localeFile = localeDir / f"{locale}.json"
+    with open(localeFile, "r") as f:
+        localeJson = json.load(f)
     try:
-        return localeJson[m.group("key_name")]
+        return localeJson[key_name]
     except KeyError:
-        raise KeyError(f"Translation key \"{m.group("key_name")}\"")
+        # Try to load from defaultLang
+        localeFile = localeDir / f"{defaultLang}.json"
+        with open(localeFile, "r") as f:
+            localeJson = json.load(f)
+        try:
+            defaultValue = localeJson[key_name]
+            logger.warning(
+                f'Translation key "{key_name}" not found for '
+                f"{locale}. Using default language."
+            )
+            return defaultValue
+        except KeyError:
+            logger.warning(
+                f'Translation key "{key_name}" not found. '
+                "Using empty value."
+            )
+            return ""
+        # raise KeyError(f"Translation key \"{m.group("key_name")}\"")
 
 
 def apply_i_include(locale: str, file: str):
-    from get_config import sgen_config
+    from sgen.get_config import sgen_config
+
     try:
         with open(sgen_config.SRC_DIR / locale / file) as f:
             return f.read()
