@@ -2,7 +2,7 @@ from enum import Enum
 import math
 from pathlib import Path
 from time import sleep
-from typing import Generator
+from typing import Iterable
 
 from logging import getLogger
 
@@ -15,14 +15,39 @@ logger = getLogger(__name__)
 
 
 def listenChange():
+    IGNORE_LIST = (
+        "build",
+        "env",
+        "venv",
+        ".env",
+        ".venv",
+        ".mypy_cache",
+        ".DS_Store",
+        "__pycache__",
+    )
     mTimes: dict[Path, float] = {}
     logger.warning("Change listening...")
     try:
         build()
         while True:
-            listen_files: Generator[Path, None, None] = Path(
-                sgen_config.BASE_DIR
-            ).glob("**/[!build]*")
+            listen_files: Iterable[Path] = Path(sgen_config.BASE_DIR).glob(
+                "**/"
+                # "[!build]"
+                # "[!env]"
+                # "[!venv]"
+                # "[!.env]"
+                # "[!.venv]"
+                # "[!.mypy_cache]"
+                # "[!.DS_Store]"
+                # "[!__pycache__]"
+                "*"
+            )
+            # Ignore
+            listen_files = [
+                f
+                for f in listen_files
+                if not any(map(lambda n: n in str(f).split("/"), IGNORE_LIST))
+            ]
             for filepath in listen_files:
                 old_time = mTimes.get(filepath)
                 mtime = filepath.stat().st_mtime
@@ -30,11 +55,18 @@ def listenChange():
                 if old_time is None:
                     continue
                 elif mtime > old_time:
+                    # print(mtime, old_time)
                     fPrint(
                         f"{filepath} changed, rebuilding. ",
                         color=ConsoleColor.YELLOW,
                     )
                     try:
+                        # Prevent multiple builds when multiple files are
+                        # changed at once
+                        # for filepath in listen_files:
+                        #     old_time = mTimes.get(filepath)
+                        #     mtime = filepath.stat().st_mtime
+                        #     mTimes[filepath] = mtime
                         build()
                         fPrint(
                             f"{filepath} changed, built. ",
