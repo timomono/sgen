@@ -4,7 +4,7 @@ from pathlib import Path
 from time import sleep
 from typing import Iterable
 
-from logging import getLogger
+from logging import getLogger, Handler
 
 from sgen.build import build  # type:ignore
 import shutil
@@ -56,9 +56,8 @@ def listenChange():
                     continue
                 elif mtime > old_time:
                     # print(mtime, old_time)
-                    fPrint(
+                    logger.warning(
                         f"{filepath} changed, rebuilding. ",
-                        color=ConsoleColor.YELLOW,
                     )
                     try:
                         # Prevent multiple builds when multiple files are
@@ -68,14 +67,12 @@ def listenChange():
                         #     mtime = filepath.stat().st_mtime
                         #     mTimes[filepath] = mtime
                         build()
-                        fPrint(
+                        logger.info(
                             f"{filepath} changed, built. ",
-                            color=ConsoleColor.GREEN,
                         )
                     except Exception as e:
-                        fPrint(
+                        logger.error(
                             f"Error while building: {e}",
-                            color=ConsoleColor.RED,
                         )
                         # logger.warn("Error while building: ")
                         # logger.exception(e)
@@ -114,6 +111,27 @@ def fPrint(s, color: ConsoleColor | None = None):
         + "=" * math.floor(spaceSize),
         end="",
     )
+
+
+class FPrintHandler(Handler):
+    def __init__(self):
+        super().__init__()
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        if record.levelname == "INFO":
+            fPrint(log_entry, color=ConsoleColor.GREEN)
+        elif record.levelname == "WARNING":
+            fPrint(log_entry, color=ConsoleColor.YELLOW)
+        elif record.levelname == "ERROR":
+            fPrint(log_entry, color=ConsoleColor.RED)
+        else:
+            fPrint(log_entry)
+
+
+# logger.addHandler(FPrintHandler())
+# Add to root logger
+getLogger().addHandler(FPrintHandler())
 
 
 def clean():
