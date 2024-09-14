@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from functools import lru_cache
 from logging import getLogger
 from pathlib import Path
 from typing import Iterable
@@ -146,6 +147,24 @@ class ExampleNotFoundError(NotImplementedError):
     pass
 
 
+def did_you_mean(list_: list, text: str, max_similarity: int = 7) -> list[str]:
+    return [t for t in list_ if similarity(t, text) < max_similarity]
+
+
+@lru_cache(maxsize=100)
+def similarity(text1: str, text2: str) -> int:
+    if text1 == "":
+        return len(text2)
+    if text2 == "":
+        return len(text1)
+    if text1[0] == text2[0]:
+        return similarity(text1[1:], text2[1:])
+    l1 = similarity(text1, text2[1:])
+    l2 = similarity(text1[1:], text2)
+    l3 = similarity(text1[1:], text2[1:])
+    return 1 + min(l1, l2, l3)
+
+
 class CreateExampleProj(Command):
     name = "example"
 
@@ -163,12 +182,23 @@ class CreateExampleProj(Command):
             raise ExampleNotFoundError(
                 "Example name include slash or backslash."
             )
-        examplePath = Path(__file__).parent / "example" / param[0]
+        examplesFolder = Path(__file__).parent / "example"
+        examplePath: Path = Path(__file__).parent / "example" / param[0]
         projPath = Path(param[1])
+        ignoreNameList = [".DS_Store", "__pycache__"]
+        exampleNames = [
+            n
+            for n in map(lambda p: str(p.name), examplesFolder.glob("*"))
+            if n not in ignoreNameList
+        ]
 
-        if not examplePath.exists():
+        if (not examplePath.exists()) or exampleName in ignoreNameList:
+            did_you_mean_result = did_you_mean(exampleNames, exampleName)
             raise ExampleNotFoundError(
                 f'Example "{exampleName}" not implemented. '
+                + ("Did you mean: " if did_you_mean_result != [] else "")
+                + f'{" or ".join(did_you_mean_result)}'
+                # f'Excepted: ({", ".join(exampleNames)})'
             )
 
         if projPath.exists():
@@ -177,10 +207,10 @@ class CreateExampleProj(Command):
                     f"{projPath} is already exists. override? (y/n): "
                 )
             except KeyboardInterrupt:
-                logger.warn("Cancelled by user. ")
+                logger.warning("Cancelled by user. ")
                 return
             if not (prompt.lower() == "y" or prompt.lower() == "yes"):
-                logger.warn("Cancelled by user. ")
+                logger.warning("Cancelled by user. ")
                 return
 
         copytree(
