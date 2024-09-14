@@ -16,7 +16,7 @@ logger = getLogger(__name__)
 
 def listenChange():
     mTimes: dict[Path, float] = {}
-    logger.warn("Change listening...")
+    logger.warning("Change listening...")
     try:
         build()
         while True:
@@ -24,10 +24,6 @@ def listenChange():
                 sgen_config.BASE_DIR
             ).glob("**/[!build]*")
             for filepath in listen_files:
-                if str(filepath.resolve()).startswith(
-                    str((sgen_config.BASE_DIR / "build").resolve())
-                ):
-                    continue
                 old_time = mTimes.get(filepath)
                 mtime = filepath.stat().st_mtime
                 mTimes[filepath] = mtime

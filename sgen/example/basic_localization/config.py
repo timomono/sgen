@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import override
-from base_config import BaseConfig
-from stdlib.localization.middleware import (
+from sgen.base_config import BaseConfig
+from sgen.stdlib.localization.middleware import (
     LocalizationConfig,
     LocalizationMiddleware,
 )
