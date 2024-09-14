@@ -4,7 +4,7 @@ from pathlib import Path
 from time import sleep
 from typing import Iterable
 
-from logging import getLogger, Handler
+from logging import getLogger, Handler, INFO, root
 
 from sgen.build import build  # type:ignore
 import shutil
@@ -12,6 +12,7 @@ import atexit
 from sgen.get_config import sgen_config
 
 logger = getLogger(__name__)
+root.setLevel(INFO)
 
 
 def listenChange():
@@ -131,7 +132,7 @@ class FPrintHandler(Handler):
 
 # logger.addHandler(FPrintHandler())
 # Add to root logger
-getLogger().addHandler(FPrintHandler())
+root.addHandler(FPrintHandler())
 
 
 def clean():
