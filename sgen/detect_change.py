@@ -9,7 +9,6 @@ from logging import getLogger, Handler, INFO, root
 
 from sgen.build import build  # type:ignore
 import shutil
-import atexit
 from sgen.get_config import sgen_config
 
 logger = getLogger(__name__)
@@ -73,9 +72,7 @@ def listenChange():
                             f"{filepath} changed, built. ",
                         )
                     except Exception as e:
-                        logger.error(
-                            f"Error while building: {e}",
-                        )
+                        logger.error(e)
                         # logger.warn("Error while building: ")
                         # logger.exception(e)
 
@@ -162,4 +159,4 @@ def clean():
     os.system("cls" if os.name == "nt" else "clear")
 
 
-atexit.register(clean)
+# atexit.register(clean)

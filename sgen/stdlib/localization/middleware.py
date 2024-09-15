@@ -53,11 +53,11 @@ class LocalizationMiddleware(BaseMiddleware):
             if file.name == "trans_temp":
                 continue
             copy_to = temp_path / file.relative_to(buildPath)
-            copy_to.parent.mkdir(exist_ok=True)
+            copy_to.parent.mkdir(exist_ok=True, parents=True)
             file.rename(copy_to)
         for path in buildPath.iterdir():
             if path.name != "trans_temp":
-                path.rmdir()
+                shutil.rmtree(path)
         localeDir: Path = self.config.LOCALE_DIR  # type: ignore
         if not localeDir.exists():
             raise FileNotFoundError(
@@ -93,11 +93,11 @@ class LocalizationMiddleware(BaseMiddleware):
                     )
                 ):
                     continue
-                with open(file, "r") as f:
-                    body = f.read()
+                with open(file, "rb") as ff:
+                    body = ff.read()
                 # Apply key translation
                 body = re.sub(
-                    r'\[\[trans \(key:"(?P<key_name>[a-zA-Z0-9-_.]*)"\)\]\]',
+                    rb'\[\[trans \(key:"(?P<key_name>[a-zA-Z0-9-_.]*)"\)\]\]',
                     lambda m: get_key_trans_value(
                         m, localeDir, locale, self.config.DEFAULT_LANG
                     ),
@@ -105,42 +105,45 @@ class LocalizationMiddleware(BaseMiddleware):
                 )
                 # Apply t_include
                 body = re.sub(
-                    r"\[\[trans include "
-                    r'\(filename:"(?P<filename>[a-zA-Z0-9-_.]*)"\)\]\]',
-                    lambda m: apply_i_include(locale, m.group("filename")),
+                    rb"\[\[trans include "
+                    rb'\(filename:"(?P<filename>[a-zA-Z0-9-_.]*)"\)\]\]',
+                    lambda m: apply_i_include(
+                        locale, m.group("filename").decode("utf-8")
+                    ),
                     body,
                 )
                 out_filepath = buildLocaleDir / file.relative_to(temp_path)
-                out_filepath.parent.mkdir(exist_ok=True)
-                with open(out_filepath, "w") as f:
-                    f.write(body)
+                out_filepath.parent.mkdir(exist_ok=True, parents=True)
+                with open(out_filepath, "wb") as ff:
+                    ff.write(body)
         shutil.rmtree(temp_path)
 
 
 def get_key_trans_value(
     m: re.Match, localeDir: Path, locale: str, defaultLang: str
-) -> str:
-    key_name = m.group("key_name")
+) -> bytes:
+    key_name: bytes = m.group("key_name")
     localeFile = localeDir / f"{locale}.json"
     with open(localeFile, "r") as f:
         localeJson = json.load(f)
     try:
-        return localeJson[key_name]
+        return localeJson[key_name.decode("utf-8")].encode("utf-8")
     except KeyError:
         # Try to load from defaultLang
         localeFile = localeDir / f"{defaultLang}.json"
         with open(localeFile, "r") as f:
             localeJson = json.load(f)
         try:
-            defaultValue = localeJson[key_name]
+            defaultValue: str = localeJson[key_name.decode("utf-8")]
             logger.warning(
-                f'Translation for "{key_name}" not found for '
+                f'Translation for "{key_name.decode("utf-8")}" not found for '
                 f"{locale}. Using default language."
             )
-            return defaultValue
+            return defaultValue.encode("utf-8")
         except KeyError:
             logger.warning(
-                f'Translation for "{key_name}" not found. Using key name.'
+                f'Translation for "{key_name.decode("utf-8")}" not found. '
+                "Using key name."
             )
             return key_name
         # raise KeyError(f"Translation key \"{m.group("key_name")}\"")
