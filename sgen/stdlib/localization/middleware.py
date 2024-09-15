@@ -134,16 +134,15 @@ def get_key_trans_value(
         try:
             defaultValue = localeJson[key_name]
             logger.warning(
-                f'Translation key "{key_name}" not found for '
+                f'Translation for "{key_name}" not found for '
                 f"{locale}. Using default language."
             )
             return defaultValue
         except KeyError:
             logger.warning(
-                f'Translation key "{key_name}" not found. '
-                "Using empty value."
+                f'Translation for "{key_name}" not found. Using key name.'
             )
-            return ""
+            return key_name
         # raise KeyError(f"Translation key \"{m.group("key_name")}\"")
 
 
