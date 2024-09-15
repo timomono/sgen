@@ -79,7 +79,7 @@ def listenChange():
                         # logger.warn("Error while building: ")
                         # logger.exception(e)
 
-                sleep(0.3)
+            sleep(0.3)
     except KeyboardInterrupt:
         clean()
         return
