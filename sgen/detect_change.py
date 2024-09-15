@@ -1,5 +1,6 @@
 from enum import Enum
 import math
+import os
 from pathlib import Path
 from time import sleep
 from typing import Iterable
@@ -90,28 +91,50 @@ class ConsoleColor(Enum):
     YELLOW = "\033[33m"
 
 
+os.system("cls" if os.name == "nt" else "clear")
+
+
+class ConsoleOutput:
+    color: ConsoleColor | None
+    body: str
+
+    def __init__(self, color: ConsoleColor | None, body: str) -> None:
+        self.color = color
+        self.body = body
+
+    def getColorString(self):
+
+        if self.color:
+            return self.color.value + self.body + "\033[0m"
+        else:
+            return self.body
+
+
+console_outputs: list[ConsoleOutput] = []
+
+# MAX_OUTPUT_CONSOLE = 5
+
+
 def fPrint(s, color: ConsoleColor | None = None):
-    if color:
-        colorStr = color.value + s + "\033[0m"
-    else:
-        colorStr = s
     terminal_size = shutil.get_terminal_size()
-    if len(s) > terminal_size.columns:
-        print("\r" + colorStr)
-    spaceSize = (terminal_size.columns - len(s)) / 2
-    # print("\r" + "-" * terminal_size.columns, end="")
-    print("\r", end="")
-    for i in range(terminal_size.columns):
-        print("-", end="", flush=True)
-        sleep(0.003)
-    sleep(0.2)
-    print(
-        "\r"
-        + "=" * math.ceil(spaceSize)
-        + colorStr
-        + "=" * math.floor(spaceSize),
-        end="",
-    )
+    max_output_console = terminal_size.columns
+    if len(console_outputs) > max_output_console:
+        console_outputs.pop()
+    console_outputs.append(ConsoleOutput(color, s))
+    os.system("cls" if os.name == "nt" else "clear")
+    for console_output in console_outputs:
+        colorStr = console_output.getColorString()
+        terminal_size = shutil.get_terminal_size()
+        if len(s) > terminal_size.columns:
+            print(colorStr)
+            continue
+        spaceSize = (terminal_size.columns - len(console_output.body)) / 2
+        print(
+            "\r"
+            + "=" * math.ceil(spaceSize)
+            + colorStr
+            + "=" * math.floor(spaceSize),
+        )
 
 
 class FPrintHandler(Handler):
@@ -136,9 +159,7 @@ root.addHandler(FPrintHandler())
 
 
 def clean():
-    terminal_size = shutil.get_terminal_size()
-    print("\r", end="", flush=True)
-    print(" " * terminal_size.columns, end="", flush=True)
+    os.system("cls" if os.name == "nt" else "clear")
 
 
 atexit.register(clean)
