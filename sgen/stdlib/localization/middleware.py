@@ -113,7 +113,7 @@ class LocalizationMiddleware(BaseMiddleware):
                 # Apply t_include
                 body = re.sub(
                     rb"\[\[trans include "
-                    rb'\(filename:"(?P<filename>[a-zA-Z0-9-_.]*)"\)\]\]',
+                    rb'\(filename:"(?P<filename>[a-zA-Z0-9-_./]*)"\)\]\]',
                     lambda m: apply_i_include(
                         locale, m.group("filename").decode("utf-8")
                     ),
