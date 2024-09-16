@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import shutil
 from typing import override
+from urllib.parse import urljoin, urlparse
 from sgen.base_middleware import BaseMiddleware
 from sgen.stdlib.smini.smini import minify
 import re
@@ -14,24 +15,24 @@ class LocalizationConfig:
     """Localization configuration."""
 
     @property
-    def LOCALE_DIR(self) -> Path:
+    def locale_dir(self) -> Path:
         from sgen.get_config import sgen_config
 
         return sgen_config.BASE_DIR / "locale"
 
-    @property
-    def DEFAULT_LANG(self) -> str:
-        return "en"
+    def __init__(
+        self, default_lang: str = "en", localize_file: list[str] = [".html"]
+    ) -> None:
+        self.default_lang = default_lang
+        self.localize_file = localize_file
 
 
 class NoLangFoundException(Exception):
-    def __init__(self, message="hwy") -> None:
-        from sgen.get_config import sgen_config
-
+    def __init__(self, localization_config: LocalizationConfig) -> None:
         self.message = (
             "No language for localization found. "
-            "Currently LOCALE_DIR is set to"
-            f' "{sgen_config.LOCALE_CONFIG.LOCALE_DIR}".'  # type:ignore
+            "Currently locale_dir is set to"
+            f' "{localization_config.locale_dir}".'  # type:ignore
         )
         super().__init__(self.message)
 
@@ -52,13 +53,19 @@ class LocalizationMiddleware(BaseMiddleware):
                 continue
             if file.name == "trans_temp":
                 continue
+            if file.suffix not in self.config.localize_file:
+                continue
             copy_to = temp_path / file.relative_to(buildPath)
             copy_to.parent.mkdir(exist_ok=True, parents=True)
             file.rename(copy_to)
         for path in buildPath.iterdir():
-            if path.name != "trans_temp":
+            if (
+                path.name != "trans_temp"
+                and file.suffix not in self.config.localize_file
+                and file.is_dir()
+            ):
                 shutil.rmtree(path)
-        localeDir: Path = self.config.LOCALE_DIR  # type: ignore
+        localeDir: Path = self.config.locale_dir  # type: ignore
         if not localeDir.exists():
             raise FileNotFoundError(
                 "LOCALE_DIR specified in config.py does not exist"
@@ -74,7 +81,7 @@ class LocalizationMiddleware(BaseMiddleware):
             f.write(localeRedirectIndex(localesStr, self.config))
 
         if locales == []:
-            raise NoLangFoundException()
+            raise NoLangFoundException(self.config)
 
         for locale in locales:
             buildLocaleDir = buildPath / locale
@@ -99,7 +106,7 @@ class LocalizationMiddleware(BaseMiddleware):
                 body = re.sub(
                     rb'\[\[trans \(key:"(?P<key_name>[a-zA-Z0-9-_.]*)"\)\]\]',
                     lambda m: get_key_trans_value(
-                        m, localeDir, locale, self.config.DEFAULT_LANG
+                        m, localeDir, locale, self.config.default_lang
                     ),
                     body,
                 )
@@ -112,11 +119,48 @@ class LocalizationMiddleware(BaseMiddleware):
                     ),
                     body,
                 )
+                # Change link
+                body = re.sub(
+                    rb"(< *[a-zA-Z]+ +[^>]*(src|href)=)"
+                    rb"[\"\']?([^>\"' ]*)[\"\']?"
+                    rb"( *[^>]*>)",
+                    # m.groups: (b'<a href=', b'href', b'#', b'>')
+                    lambda m: change_to_localized_link(
+                        m, locale, file, temp_path, self.config
+                    ),
+                    body,
+                )
                 out_filepath = buildLocaleDir / file.relative_to(temp_path)
                 out_filepath.parent.mkdir(exist_ok=True, parents=True)
                 with open(out_filepath, "wb") as ff:
                     ff.write(body)
         shutil.rmtree(temp_path)
+
+
+def change_to_localized_link(
+    match: re.Match,
+    locale: str,
+    file: Path,
+    base_dir: Path,
+    config: LocalizationConfig,
+):
+    prefix = match.group(1).decode("utf-8")
+    suffix = match.group(4).decode("utf-8")
+    result: str = match.group(3).decode("utf-8")
+    filename = result.split("/")[-1]
+    ext: str | None = filename.split(".")[-1] if "." in filename else None
+
+    # Ignore other site and non-localized files
+    if urlparse(result).netloc != "" or (
+        ext not in config.localize_file and ext is not None
+    ):
+        return rf'{prefix}"{result}"{suffix}'.encode("utf-8")
+
+    relative_path = file.relative_to(base_dir)
+    absolute_url = urljoin(str(relative_path), urlparse(result).path)
+    result = f"/{locale}" + absolute_url
+    return rf'{prefix}"{result}"{suffix}'.encode("utf-8")
+    # return rf'\1"{result}"\4'.encode("utf-8")
 
 
 def get_key_trans_value(
@@ -186,7 +230,7 @@ def localeRedirectIndex(localesStr: str, config: LocalizationConfig) -> str:
     )[0];
     console.log(lang);
     if (lang == undefined){{
-        location.href = {config.DEFAULT_LANG}"""  # type:ignore
+        location.href = {config.default_lang}"""  # type:ignore
         f"""
     }}
     location.href = "./" + lang.toLowerCase() + "/";

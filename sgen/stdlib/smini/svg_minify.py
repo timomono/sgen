@@ -1,17 +1,21 @@
 import re
+import io
 from xml.etree import ElementTree
 
 
-def main():
-    tree = ElementTree.parse("in.svg")
+def minify(input: str) -> str:
+    tree = ElementTree.ElementTree(ElementTree.fromstring(input))
     namespaces = {
-        node[0]: node[1]
-        for _, node in ElementTree.iterparse("in.svg", events=["start-ns"])
+        node
+        for _, node in ElementTree.iterparse(
+            io.StringIO(input), events=["start-ns"]
+        )
     }
-    for key, value in namespaces.items():
+    for key, value in namespaces:
         ElementTree.register_namespace("", value)
 
     root = tree.getroot()
+    remove_non_svg_elements(root)
     for element in root.iter():
         # Remove unnecessary style
         replaceStyle(element, r"(?<!-)opacity: *1;")
@@ -27,8 +31,29 @@ def main():
     ).decode("utf-8")
     xmlStr = re.sub(r">\s+<", "><", xmlStr)
     xmlStr = re.sub(r"<defs .*?/>", "", xmlStr)
-    with open("out.svg", "w") as f:
-        f.write(xmlStr)
+    return xmlStr
+
+
+def remove_non_svg_elements(element: ElementTree.Element):
+    attrs_to_remove = [
+        attr
+        for attr in element.attrib
+        if not (attr.startswith("{http://www.w3.org/2000/svg}"))
+        and attr.startswith("{")
+    ]
+    for attr in attrs_to_remove:
+        del element.attrib[attr]
+
+    elements_to_remove = []
+
+    for child in element:
+        if not child.tag.startswith("{http://www.w3.org/2000/svg}"):
+            elements_to_remove.append(child)
+        else:
+            remove_non_svg_elements(child)
+
+    for child in elements_to_remove:
+        element.remove(child)
 
 
 def replaceStyle(element: ElementTree.Element, pattern: str):
@@ -37,7 +62,3 @@ def replaceStyle(element: ElementTree.Element, pattern: str):
     if replacedStyle != "":
         pass
         element.set("style", replacedStyle)
-
-
-if __name__ == "__main__":
-    main()

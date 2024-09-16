@@ -56,6 +56,7 @@ def listenChange():
                 if old_time is None:
                     continue
                 elif mtime > old_time:
+                    clean_log()
                     # print(mtime, old_time)
                     logger.warning(
                         f"{filepath} changed, rebuilding. ",
@@ -78,7 +79,7 @@ def listenChange():
 
             sleep(0.3)
     except KeyboardInterrupt:
-        clean()
+        clean_log()
         return
 
 
@@ -86,9 +87,6 @@ class ConsoleColor(Enum):
     RED = "\033[31m"
     GREEN = "\033[32m"
     YELLOW = "\033[33m"
-
-
-os.system("cls" if os.name == "nt" else "clear")
 
 
 class ConsoleOutput:
@@ -118,7 +116,7 @@ def fPrint(s, color: ConsoleColor | None = None):
     if len(console_outputs) > max_output_console:
         console_outputs.pop()
     console_outputs.append(ConsoleOutput(color, s))
-    os.system("cls" if os.name == "nt" else "clear")
+    clean_log()
     for console_output in console_outputs:
         colorStr = console_output.getColorString()
         terminal_size = shutil.get_terminal_size()
@@ -155,8 +153,10 @@ class FPrintHandler(Handler):
 root.addHandler(FPrintHandler())
 
 
-def clean():
+def clean_log():
     os.system("cls" if os.name == "nt" else "clear")
 
+
+clean_log()
 
 # atexit.register(clean)
