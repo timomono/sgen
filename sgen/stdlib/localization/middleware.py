@@ -151,8 +151,10 @@ def change_to_localized_link(
     ext: str | None = filename.split(".")[-1] if "." in filename else None
 
     # Ignore other site and non-localized files
-    if urlparse(result).netloc != "" or (
-        ext not in config.localize_file and ext is not None
+    if (
+        (urlparse(result).netloc != "")
+        or (ext not in config.localize_file and ext is not None)
+        or (result.startswith("#"))
     ):
         return rf'{prefix}"{result}"{suffix}'.encode("utf-8")
 
