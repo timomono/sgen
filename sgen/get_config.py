@@ -5,7 +5,7 @@ from pathlib import Path
 import importlib.util
 
 if TYPE_CHECKING:
-    from base_config import BaseConfig
+    from sgen.base_config import BaseConfig
 
 
 def get_config() -> "BaseConfig":

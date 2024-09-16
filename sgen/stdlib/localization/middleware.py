@@ -153,7 +153,7 @@ def apply_i_include(locale: str, file: str):
     from sgen.get_config import sgen_config
 
     try:
-        with open(sgen_config.SRC_DIR / locale / file) as f:
+        with open(sgen_config.SRC_DIR / locale / file, "rb") as f:
             return f.read()
     except FileNotFoundError:
         raise FileNotFoundError(

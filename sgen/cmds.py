@@ -24,7 +24,7 @@ class Build(Command):
     name = "build"
 
     def run(self, param: list):
-        from build import build  # type: ignore
+        from sgen.build import build  # type: ignore
 
         if len(param) != 0:
             raise TypeError(
