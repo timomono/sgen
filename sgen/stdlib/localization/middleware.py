@@ -199,13 +199,13 @@ def apply_i_include(locale: str, file: str):
     from sgen.get_config import sgen_config
 
     try:
-        with open(sgen_config.SRC_DIR / locale / file, "rb") as f:
+        with open(sgen_config.SRC_DIR / "locale" / locale / file, "rb") as f:
             return f.read()
     except FileNotFoundError:
         raise FileNotFoundError(
             f'Included file "{file}" not found '
             "(Tried to load from "
-            f"{sgen_config.SRC_DIR / locale / file})"
+            f"{sgen_config.SRC_DIR / "locale" / locale / file})"
         )
 
 
