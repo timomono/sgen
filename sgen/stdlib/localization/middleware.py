@@ -91,14 +91,16 @@ class LocalizationMiddleware(BaseMiddleware):
             for file in temp_path.glob("**/*"):
                 if file.is_dir():
                     continue
-                if True in list(
-                    map(
-                        lambda locale: str(file.resolve()).startswith(
-                            str((temp_path / locale).resolve())
-                        ),
-                        locales,
-                    )
-                ):
+                # if True in list(
+                #     map(
+                #         lambda locale: str(file.resolve()).startswith(
+                #             str((temp_path / locale).resolve())
+                #         ),
+                #         locales,
+                #     )
+                # ):
+                if str(file.resolve()).startswith(
+                        str((temp_path / "locale").resolve())):
                     continue
                 with open(file, "rb") as ff:
                     body = ff.read()

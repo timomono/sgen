@@ -25,7 +25,7 @@ class BaseMiddleware(ABC):
     """
 
     @abstractmethod
-    def do(self, buildPath: Path) -> None:
+    def do(self, build_path: Path) -> None:
         """Called at build time.
         These operations are allowed:
         - Modifying the folder structure

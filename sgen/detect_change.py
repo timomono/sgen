@@ -62,13 +62,13 @@ def listenChange():
                         f"{filepath} changed, rebuilding. ",
                     )
                     try:
+                        build()
                         # Prevent multiple builds when multiple files are
                         # changed at once
-                        # for filepath in listen_files:
-                        #     old_time = mTimes.get(filepath)
-                        #     mtime = filepath.stat().st_mtime
-                        #     mTimes[filepath] = mtime
-                        build()
+                        for filepath in listen_files:
+                            old_time = mTimes.get(filepath)
+                            mtime = filepath.stat().st_mtime
+                            mTimes[filepath] = mtime
                         logger.info(
                             f"{filepath} changed, built. ",
                         )
