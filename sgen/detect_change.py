@@ -9,7 +9,7 @@ from logging import getLogger, Handler, INFO, root
 
 from sgen.build import build  # type:ignore
 import shutil
-from sgen.get_config import sgen_config
+from sgen.get_config import reload_config, sgen_config
 
 logger = getLogger(__name__)
 root.setLevel(INFO)
@@ -62,13 +62,20 @@ def listenChange():
                         f"{filepath} changed, rebuilding. ",
                     )
                     try:
+                        logger.warning(sgen_config.DEBUG)
+                        print("hey", flush=True)
+                        print(sgen_config, flush=True)
+                        print("hoo", flush=True)
+                        sleep(3)
+                        reload_config()
                         build()
+                        logger.warning(sgen_config.DEBUG)
                         # Prevent multiple builds when multiple files are
                         # changed at once
-                        for filepath in listen_files:
-                            old_time = mTimes.get(filepath)
-                            mtime = filepath.stat().st_mtime
-                            mTimes[filepath] = mtime
+                        for listen_file in listen_files:
+                            old_time = mTimes.get(listen_file)
+                            mtime = listen_file.stat().st_mtime
+                            mTimes[listen_file] = mtime
                         logger.info(
                             f"{filepath} changed, built. ",
                         )
