@@ -1,9 +1,8 @@
 from abc import ABC
 from pathlib import Path
 from typing import override
-from get_config import sgen_config
-from base_middleware import BaseMiddleware
-from stdlib.smini.smini import minify
+from sgen.base_middleware import BaseMiddleware
+from sgen.stdlib.smini.smini import minify
 
 
 class BaseSminiConfig(ABC):
@@ -28,21 +27,30 @@ class BaseSminiConfig(ABC):
 
 class SminiMiddleware(BaseMiddleware):
     @override
-    def __init__(self, config: BaseSminiConfig) -> None:
-        self.config = config
+    def __init__(
+        self,
+        js_delete_br=False,
+        html_delete_br=False,
+        except_debug=False,
+    ) -> None:
+        self.js_delete_br = js_delete_br
+        self.html_delete_br = html_delete_br
+        self.except_debug = except_debug
         super().__init__()
 
     @override
     def do(self, build_path: Path):
-        if self.config.except_debug and sgen_config.DEBUG:
+        from sgen.get_config import sgen_config
+
+        if self.except_debug and sgen_config.DEBUG:
             return
         for filePath in build_path.glob("**/*.js"):
             with open(filePath, "r") as f:
                 result = minify(
                     f.read(),
                     filePath.suffix,
-                    self.config.HTMLRemoveBr,
-                    self.config.JSRemoveBr,
+                    self.html_delete_br,
+                    self.js_delete_br,
                 )
             with open(filePath, "w") as f:
                 f.write(result)

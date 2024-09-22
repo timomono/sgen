@@ -13,14 +13,19 @@ class ClosureCompilerMiddleware(BaseMiddleware):
     @override
     def __init__(
         self,
-        output_js_filename: Path,
+        output_js_filename: Path | None = None,
         except_debug: bool = True,
         compile_level: CompileLevel = CompileLevel.SIMPLE_OPTIMIZATIONS,
         options: list[str] = [],
     ) -> None:
+        from sgen.get_config import sgen_config
+
         self.except_debug = except_debug
         self.compile_level = compile_level
-        self.output_js_filename = output_js_filename
+        if output_js_filename is None:
+            self.output_js_filename = sgen_config.BUILD_DIR / "main.js"
+        else:
+            self.output_js_filename = output_js_filename
         self.options = options
         super().__init__()
 
