@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import re
 from typing import override
+from urllib.parse import urlparse
 from sgen.base_middleware import BaseMiddleware
 from sgen.stdlib.closurecompiler.compile import (
     CompileLevel,
@@ -58,8 +59,14 @@ class ClosureCompilerMiddleware(BaseMiddleware):
                 start=html_file.parent,
             )
             html_body = re.sub(
-                r"(< *script +[^>]*src=)[\"\']?[^>\"' ]*[\"\']?( *[^>]*>)",
-                rf'\1"{relative_out_js_file}"\2',
+                r"(<head[^>]*>[\s\S]"
+                r"< *script +[^>]*src=)[\"\']?([^>\"' ]*)[\"\']?( *[^>]*>"
+                r"[\s\S]< */ *head *>)",
+                lambda m: (
+                    rf'{m.group(1)}"{relative_out_js_file}"{m.group(3)}'
+                    if urlparse(m.group(2)).hostname is None
+                    else m.string
+                ),
                 html_body,
             )
             with open(html_file, "w") as f:
