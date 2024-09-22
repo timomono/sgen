@@ -44,7 +44,11 @@ class SminiMiddleware(BaseMiddleware):
 
         if self.except_debug and sgen_config.DEBUG:
             return
-        for filePath in build_path.glob("**/*.js"):
+        for filePath in (
+            p
+            for p in build_path.glob("**/*")
+            if p.suffix in {".html", ".css", ".js"}
+        ):
             with open(filePath, "r") as f:
                 result = minify(
                     f.read(),

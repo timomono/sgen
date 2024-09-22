@@ -14,6 +14,7 @@ def minify(
         if HTMLRemoveBr:
             res = re.sub(r"(\n|\r\n)", "", res)
         res = re.sub(r">( |\n|\r\n)+<", "><", res)
+        res = re.sub(r"( |\n|\r\n)*(<|>)( |\n|\r\n)*", r"\2", res)
     elif ext == ".css":
         res = "".join([s.strip() for s in res])
         res = re.sub(r"/\*.*?\*/", "", res)
