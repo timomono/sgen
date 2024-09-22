@@ -16,12 +16,13 @@ def minify(
         res = re.sub(r">( |\n|\r\n)+<", "><", res)
         res = re.sub(r"( |\n|\r\n)*(<|>)( |\n|\r\n)*", r"\2", res)
     elif ext == ".css":
-        res = "".join([s.strip() for s in res])
-        res = re.sub(r"/\*.*?\*/", "", res)
-        res = re.sub(r": +?", ":", res)
-        res = re.sub(r" +?{ +?", "{", res)
-        res = re.sub(r" +?} +?", "}", res)
         res = re.sub(r"(\n|\r\n)", "", res)
+        res = re.sub(r" +", " ", res)
+        res = re.sub(r"/\*.*?\*/", "", res)
+        res = re.sub(r" *([:;]) *", r"\1", res)
+        res = re.sub(r" *{ *", "{", res)
+        res = re.sub(r" *} *", "}", res)
+        res = re.sub(r";}", "}", res)
     elif ext == ".js":
         res = "\n".join([s.split("//")[0] for s in re.split("\n|\r\n", res)])
         res = re.sub(r"/\*.*?\*/", "", res)
