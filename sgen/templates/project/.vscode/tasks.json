@@ -1,0 +1,52 @@
+// See https://go.microsoft.com/fwlink/?LinkId=733558
+// for the documentation about the tasks.json format
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "watch",
+            "dependsOn": [
+                "sgen: listen",
+                "sgen: runserver"
+            ],
+            "presentation": {
+                "reveal": "never"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        },
+        {
+            "type": "shell",
+            "command": "sgen",
+            "args": [
+                "listen"
+            ],
+            "group": "build",
+            "isBackground": true,
+            "label": "sgen: listen",
+            "presentation": {
+                "group": "watch",
+                "reveal": "never"
+            }
+        },
+        {
+            "type": "shell",
+            "command": "sgen",
+            "args": [
+                "runserver"
+            ],
+            "group": "build",
+            "isBackground": true,
+            "label": "sgen: runserver",
+            "presentation": {
+                "group": "watch",
+                "reveal": "never"
+            }
+        },
+    ]
+}
