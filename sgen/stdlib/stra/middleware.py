@@ -1,25 +1,25 @@
-import json
 from pathlib import Path
 import shutil
 from typing import override
 from urllib.parse import urljoin, urlparse
 from sgen.base_middleware import BaseMiddleware
-from sgen.components.deprecated_decorator import deprecated
 from sgen.stdlib.smini.smini import minify
 import re
 from logging import getLogger
 
+from sgen.stdlib.stra.file_parser import Stra
+
 logger = getLogger(__name__)
 
 
-class LocalizationConfig:
-    """Localization configuration."""
+class StraConfig:
+    """Stra localization configuration."""
 
     @property
     def locale_dir(self) -> Path:
         from sgen.get_config import sgen_config
 
-        return sgen_config.BASE_DIR / "locale"
+        return sgen_config.BASE_DIR / "stra"
 
     @property
     def t_include_dir(self) -> Path:
@@ -35,31 +35,30 @@ class LocalizationConfig:
 
 
 class NoLangFoundException(Exception):
-    def __init__(self, localization_config: LocalizationConfig) -> None:
+    def __init__(self, config: StraConfig) -> None:
         self.message = (
             "No language for localization found. "
             "Currently locale_dir is set to"
-            f' "{localization_config.locale_dir}".'  # type:ignore
+            f' "{config.locale_dir}".'  # type:ignore
         )
         super().__init__(self.message)
 
 
-@deprecated("Use sgen.stdlib.stra instead.")
-class LocalizationMiddleware(BaseMiddleware):
+class StraMiddleware(BaseMiddleware):
     @override
-    def __init__(self, config: LocalizationConfig) -> None:
+    def __init__(self, config: StraConfig) -> None:
         self.config = config
         super().__init__()
 
     @override
     def do(self, buildPath: Path):
-        temp_path = buildPath / "trans_temp"
+        temp_path = buildPath / "stra_temp"
         temp_path.mkdir()
         # shutil.move(buildPath, temp_path)
         for file in list(buildPath.glob("**/*")):
             if file.is_dir():
                 continue
-            if file.name == "trans_temp":
+            if file.name == "stra_temp":
                 continue
             if file.suffix not in self.config.localize_file:
                 continue
@@ -68,7 +67,7 @@ class LocalizationMiddleware(BaseMiddleware):
             file.rename(copy_to)
         for path in buildPath.iterdir():
             if (
-                path.name != "trans_temp"
+                path.name != "stra_temp"
                 and file.suffix not in self.config.localize_file
                 and file.is_dir()
             ):
@@ -78,7 +77,7 @@ class LocalizationMiddleware(BaseMiddleware):
             raise FileNotFoundError(
                 "LOCALE_DIR specified in config.py does not exist"
             )
-        localeFiles = localeDir.glob("*.json")
+        localeFiles = localeDir.glob("*.stra")
         locales = list(
             map(lambda f: ".".join(f.name.split(".")[:-1]), localeFiles)
         )
@@ -107,10 +106,6 @@ class LocalizationMiddleware(BaseMiddleware):
                 #         locales,
                 #     )
                 # ):
-                if str(file.resolve()).startswith(
-                    str((temp_path / "locale").resolve())
-                ):
-                    continue
                 with open(file, "rb") as ff:
                     body = ff.read()
                 # Apply key translation
@@ -125,7 +120,7 @@ class LocalizationMiddleware(BaseMiddleware):
                 body = re.sub(
                     rb"\[\[trans include "
                     rb'\(filename:"(?P<filename>[a-zA-Z0-9-_./]*)"\)\]\]',
-                    lambda m: apply_i_include(
+                    lambda m: apply_t_include(
                         self.config,
                         locale,
                         m.group("filename").decode("utf-8"),
@@ -155,7 +150,7 @@ def change_to_localized_link(
     locale: str,
     file: Path,
     base_dir: Path,
-    config: LocalizationConfig,
+    config: StraConfig,
 ):
     prefix = match.group(1).decode("utf-8")
     suffix = match.group(4).decode("utf-8")
@@ -182,18 +177,16 @@ def get_key_trans_value(
     m: re.Match, localeDir: Path, locale: str, defaultLang: str
 ) -> bytes:
     key_name: bytes = m.group("key_name")
-    localeFile = localeDir / f"{locale}.json"
-    with open(localeFile, "r") as f:
-        localeJson = json.load(f)
+    locale_file = localeDir / f"{locale}.stra"
+    locale_data = Stra.from_load_file(locale_file)
     try:
-        return localeJson[key_name.decode("utf-8")].encode("utf-8")
+        return locale_data[key_name.decode("utf-8")].encode("utf-8")
     except KeyError:
         # Try to load from defaultLang
-        localeFile = localeDir / f"{defaultLang}.json"
-        with open(localeFile, "r") as f:
-            localeJson = json.load(f)
+        locale_file = localeDir / f"{defaultLang}.stra"
+        locale_data = Stra.from_load_file(locale_file)
         try:
-            defaultValue: str = localeJson[key_name.decode("utf-8")]
+            defaultValue: str = locale_data[key_name.decode("utf-8")]
             logger.warning(
                 f'Translation for "{key_name.decode("utf-8")}" not found for '
                 f"{locale}. Using default language."
@@ -208,19 +201,26 @@ def get_key_trans_value(
         # raise KeyError(f"Translation key \"{m.group("key_name")}\"")
 
 
-def apply_i_include(config: LocalizationConfig, locale: str, file: str):
+def apply_t_include(config: StraConfig, locale: str, file: str):
+    filepath = config.t_include_dir / locale / file
+    if not filepath.exists():
+        raise FileNotFoundError(
+            f'Included file "{file}" not found '
+            "(Tried to load from "
+            f"{filepath})"
+        )
     try:
-        with open(config.t_include_dir / locale / file, "rb") as f:
+        with open(filepath, "rb") as f:
             return f.read()
     except FileNotFoundError:
         raise FileNotFoundError(
             f'Included file "{file}" not found '
             "(Tried to load from "
-            f"{config.locale_dir / locale / file})"
+            f"{filepath})"
         )
 
 
-def localeRedirectIndex(localesStr: str, config: LocalizationConfig) -> str:
+def localeRedirectIndex(localesStr: str, config: StraConfig) -> str:
     return minify(
         f"""
 <!DOCTYPE html>

@@ -2,6 +2,9 @@ from enum import Enum
 import math
 import os
 from pathlib import Path
+
+# from random import randint
+from random import randint
 from time import sleep
 from typing import Iterable
 
@@ -18,6 +21,7 @@ root.setLevel(INFO)
 def listenChange():
     IGNORE_LIST = (
         "build",
+        "sitemap.xml",
         "env",
         "venv",
         ".env",
@@ -61,23 +65,41 @@ def listenChange():
                     logger.warning(
                         f"{filepath} changed, rebuilding. ",
                     )
-                    try:
-                        build()
-                        # Prevent multiple builds when multiple files are
-                        # changed at once
-                        for filepath in listen_files:
-                            old_time = mTimes.get(filepath)
-                            mtime = filepath.stat().st_mtime
-                            mTimes[filepath] = mtime
-                        logger.info(
-                            f"{filepath} changed, built. ",
+                    build()
+                    # Prevent multiple builds when multiple files are
+                    # changed at once
+                    # sleep(1)
+                    new_listen_files: Iterable[Path] = Path(
+                        sgen_config.BASE_DIR
+                    ).glob("*")
+                    new_listen_files = [
+                        f
+                        for f in listen_files
+                        if not any(
+                            map(lambda n: n in str(f).split("/"), IGNORE_LIST)
                         )
-                    except Exception as e:
-                        logger.error(e)
-                        # logger.warn("Error while building: ")
-                        # logger.exception(e)
+                    ]
+                    for update_path in new_listen_files:
+                        mtime = update_path.stat().st_mtime
+                        mTimes[update_path] = mtime
+                    logger.info(
+                        f"{filepath} changed, built. ",
+                    )
+                    # logger.exception(e)
+                    # msg = (
+                    #     e.args[0]  # type:ignore
+                    #     if len(e.args) == 0
+                    #     else e.args  # type:ignore
+                    # )
+                    # e.with_traceback()
+                    # logger.error(f"{msg}")
+                    # logger.error(f"{e.with_traceback()}")
+                    # logger.warn("Error while building: ")
+                    # logger.exception(e)
 
             sleep(0.3)
+    except Exception:
+        logger.exception("An error occurred during build")
     except KeyboardInterrupt:
         clean_log()
         return
@@ -93,7 +115,11 @@ class ConsoleOutput:
     color: ConsoleColor | None
     body: str
 
-    def __init__(self, color: ConsoleColor | None, body: str) -> None:
+    def __init__(
+        self,
+        body: str,
+        color: ConsoleColor | None = None,
+    ) -> None:
         self.color = color
         self.body = body
 
@@ -110,13 +136,13 @@ console_outputs: list[ConsoleOutput] = []
 # MAX_OUTPUT_CONSOLE = 5
 
 
-def fPrint(s, color: ConsoleColor | None = None):
+def fPrint(s: str, color: ConsoleColor | None = None):
     terminal_size = shutil.get_terminal_size()
-    max_output_console = terminal_size.columns
-    if len(console_outputs) > max_output_console:
-        console_outputs.pop()
-    console_outputs.append(ConsoleOutput(color, s))
-    clean_log()
+    # max_output_console = terminal_size.lines
+    # if len(console_outputs) > max_output_console:
+    #     console_outputs.pop()
+    console_outputs.append(ConsoleOutput(s, color))
+    clean_screen()
     for console_output in console_outputs:
         colorStr = console_output.getColorString()
         terminal_size = shutil.get_terminal_size()
@@ -154,6 +180,12 @@ root.addHandler(FPrintHandler())
 
 
 def clean_log():
+    global console_outputs
+    clean_screen()
+    console_outputs = []
+
+
+def clean_screen():
     os.system("cls" if os.name == "nt" else "clear")
 
 

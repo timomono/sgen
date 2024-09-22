@@ -33,7 +33,7 @@ class Build(Command):
             )
 
         build()
-        logger.warn("Successfully built!")
+        logger.warning("Successfully built!")
 
 
 class ListenChange(Command):
@@ -77,7 +77,7 @@ def runserver(port: int = 8282):
             )
 
     with socketserver.TCPServer(("", port), Handler) as httpd:
-        logger.warn(
+        logger.warning(
             f"serving at port {port} http://localhost:{port}",
         )
         try:
