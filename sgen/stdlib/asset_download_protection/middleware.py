@@ -2,6 +2,7 @@ from pathlib import Path
 import re
 from urllib.parse import urlparse
 from sgen.base_middleware import BaseMiddleware
+from sgen.stdlib.asset_download_protection.obf import obfScript
 
 # <Files ~ "^(?!.*((\.(html|htm))|/)$).*">
 
@@ -16,11 +17,12 @@ allow from env=samesite
 """
 )
 
-SCRIPT_STR = """document.addEventListener("DOMContentLoaded",async()=>{const f=[];for(const b of document.querySelectorAll("*[data-prot-src-id]")){b.addEventListener("contextmenu",c=>c.preventDefault());b.addEventListener("mousedown",c=>c.preventDefault());const e=URL.createObjectURL(await (await fetch(f[b.dataset.protSrcId])).blob());b.src=e;b.addEventListener("load",()=>URL.revokeObjectURL(e));const g=b.parentElement,a=document.createElement("img");a.src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAAtJREFUGFdjYAACAAAFAAGq1chRAAAAAElFTkSuQmCC";const d=document.createElement("div");d.style.position="relative";a.style.position="absolute";a.style.width="100%";a.style.height="100%";a.style.top="0";a.style.bottom="0";a.style.left="0";a.style.right="0";a.addEventListener("contextmenu",c=>c.preventDefault());a.addEventListener("mousedown",c=>c.preventDefault());g.append(d);d.append(b);d.append(a)}});"""  # noqa:E501
+with open(Path(__file__).parent / "minified.js") as f:
+    SCRIPT_STR = f.read()
 
 SCRIPT_STR = SCRIPT_STR.replace("{", "{{")
 SCRIPT_STR = SCRIPT_STR.replace("}", "}}")
-SCRIPT_STR = SCRIPT_STR.replace("[]", "[{list_str}]")
+SCRIPT_STR = SCRIPT_STR.replace("[]", "{list_str}")
 
 
 class AssetDownloadProtectionMiddleware(BaseMiddleware):
@@ -62,19 +64,27 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
 
             with open(file, "r") as f:
                 body = f.read()
-            result = re.sub(
+            result: str = re.sub(
                 r"(<[a-zA-Z0-9]+ +[^>]*)"
                 r"""(src) *= *["']?([^>"' ]*)["']?( *[^>]*>)""",
                 replace_src,
                 body,
             )
             list_string = SCRIPT_STR.format(
-                list_str=",".join(map(lambda v: '"' + v[1] + '"', sources))
+                list_str=obfScript(
+                    "["
+                    + ",".join(map(lambda v: '"' + v[1] + '"', sources))
+                    + "]",
+                    debugger=False,
+                    iter=1,
+                ),
             )
 
             result = re.sub(
                 r"(< */ *head *>)",
-                rf"<script>{list_string}</script>\1",
+                r"<script>"
+                + list_string.replace("\\", "\\\\")
+                + r"</script>\1",
                 result,
             )
             with open(file, "w") as f:
