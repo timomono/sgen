@@ -3,8 +3,11 @@ document.addEventListener("DOMContentLoaded", async (event) => {
     const src_list = [];
     // alert("domcontentloaded from " + src_list.length)
     for (const element of document.querySelectorAll("*[data-prot-src-id]")) {
+        /**@type {string} */
         const fromURL = src_list[element.dataset["protSrcId"]];
-        const blobUrl = URL.createObjectURL(await (await fetch(fromURL)).blob())
+        const blob = (await (await fetch(fromURL)).blob());
+        const slicedBlob = blob.slice(1, blob.size, blob.type);
+        const blobUrl = URL.createObjectURL(slicedBlob) // Remove \xff
         element.src = blobUrl;
         element.addEventListener("load",
             () => URL.revokeObjectURL(blobUrl))

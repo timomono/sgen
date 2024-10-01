@@ -33,6 +33,27 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
     def do(self, build_path: Path) -> None:
         with open(build_path / ".htaccess", "w") as f:
             f.write(HTACCESS_STR)
+        for file in (
+            path
+            for path in build_path.glob("**/*")
+            if path.suffix not in (".html", ".htm", ".css") and path.is_file()
+        ):
+            temp_file_path = file.parent / (file.name + ".tmp")
+            with open(file, "rb") as original_file, open(
+                temp_file_path, "wb"
+            ) as temp_file:
+                temp_file.write(b"\xff")
+                while chunk := original_file.read(4096):
+                    temp_file.write(chunk)
+                file.unlink()
+                temp_file_path.rename(file)
+            # with open(file, "ab") as bf:
+            #     bf.write(b"\x01")
+            # with open(file, "rb") as brf:
+            #     b = brf.read()
+            # with open(file, "wb") as bwf:
+            #     bwf.write(b"\x01" + b)
+
         for file in build_path.glob("**/*.html"):
             sources: list[tuple[str, str]] = []
 
