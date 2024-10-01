@@ -97,7 +97,7 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
                     + ",".join(map(lambda v: '"' + v[1] + '"', sources))
                     + "]",
                     debugger=False,
-                    iter=1,
+                    iter=2,
                 ),
             )
 

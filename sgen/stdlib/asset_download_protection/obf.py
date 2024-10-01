@@ -29,7 +29,7 @@ def obfScript(
             res = toUint8(res)
         if base64:
             res = toBase64(res)
-    return "(()=>{" + before + "return " + res + "})()"
+    return "(()=>{" + toUint8(before) + "return " + res + "})()"
 
 
 def toBase64(text: str) -> str:
@@ -39,7 +39,7 @@ def toBase64(text: str) -> str:
         'Array.prototype.map.call(atob("'
         + b64encode(text.encode()).decode()
         + '"),c=>c.charCodeAt())))'
-        + ")"
+        + ");"
     )
 
 
@@ -49,7 +49,7 @@ def toUint8(text: str) -> str:
     for char in text.encode():
         obf_str = baseNumberToStr(char)
         script += obf_str + ","
-    script += "]))" + ")"
+    script += "]))" + ");"
     return script
 
 
