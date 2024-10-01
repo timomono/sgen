@@ -1,6 +1,7 @@
-
+// alert("called")
 document.addEventListener("DOMContentLoaded", async (event) => {
     const src_list = [];
+    // alert("domcontentloaded from " + src_list.length)
     for (const element of document.querySelectorAll("*[data-prot-src-id]")) {
         const fromURL = src_list[element.dataset["protSrcId"]];
         const blobUrl = URL.createObjectURL(await (await fetch(fromURL)).blob())
@@ -8,12 +9,12 @@ document.addEventListener("DOMContentLoaded", async (event) => {
         element.addEventListener("load",
             () => URL.revokeObjectURL(blobUrl))
 
-        // Overlay a transparent dummy image
         if (element.tagName.toLowerCase() == "img") {
             // Context menu
             element.addEventListener("contextmenu", (e) => e.preventDefault())
             // Drag & drop
             element.addEventListener("mousedown", (e) => e.preventDefault())
+            // Overlay a transparent dummy image
             const parent = element.parentElement;
             const dummy_img = document.createElement("img");
             dummy_img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAAtJREFUGFdjYAACAAAFAAGq1chRAAAAAElFTkSuQmCC";
