@@ -36,7 +36,8 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
         for file in (
             path
             for path in build_path.glob("**/*")
-            if path.suffix not in (".html", ".htm", ".css") and path.is_file()
+            if path.suffix not in (".html", ".htm", ".css", ".js")
+            and path.is_file()
         ):
             temp_file_path = file.parent / (file.name + ".tmp")
             with open(file, "rb") as original_file, open(
@@ -86,7 +87,7 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
             with open(file, "r") as f:
                 body = f.read()
             result: str = re.sub(
-                r"(<[a-zA-Z0-9]+ +[^>]*)"
+                r"(<(?!script)[a-zA-Z0-9]+ +[^>]*)"
                 r"""(src) *= *["']?([^>"' ]*)["']?( *[^>]*>)""",
                 replace_src,
                 body,
