@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async (event) => {
             dummy_img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAAtJREFUGFdjYAACAAAFAAGq1chRAAAAAElFTkSuQmCC";
 
             const div_element = document.createElement("div");
+            div_element.style.display = element.style.display
             div_element.style.position = "relative";
             dummy_img.style.position = "absolute";
             dummy_img.style.width = "100%";
