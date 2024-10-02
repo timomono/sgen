@@ -44,8 +44,13 @@ class Stra:
                 except IndexError:
                     break
 
-                if not (line.startswith(">")) and line.lstrip() != "":
+                if not (line.startswith("> ")) and (
+                    line.lstrip() != "" or line == "pass"):
                     break
+                if line.lstrip() == "":
+                    # key += "\n"
+                    pointer += 1
+                    continue
                 key += (
                     re.match(
                         "^> *(.*)$",
@@ -78,10 +83,13 @@ class Stra:
                 if line.strip() == "":
                     pointer += 1
                     continue
+                if line.strip() == "pass":
+                    pointer += 1
+                    continue
                 translated_text += line + "\n"
                 pointer += 1
             # Remove \n
-            if translated_text[-1] == "\n":
+            if len(translated_text) != 0 and translated_text[-1] == "\n":
                 translated_text = translated_text[:-1]
 
             value[key] = translated_text
@@ -109,17 +117,19 @@ class Stra:
 
 
 if __name__ == "__main__":
-    input_string = """
-> Hello world!
-ようこそ、
-世界！
-> heyhey
+    input_string = """> Hello world
+こんにちは世界
+> Good morning
+おはようございます
+> How are you?
+pass
 """
     print(f"in str\t:{input_string.replace("\n", "[\\n]")}")
     stra_obj = Stra.from_parse_text(
                 input_string,
             )
     print("object\t:", stra_obj.ordered_dict)
+    print(stra_obj["Good morning"])
     print(
         "to str\t:",
         str(stra_obj).replace("\n", "[\\n]")
