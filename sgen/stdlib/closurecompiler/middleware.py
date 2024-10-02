@@ -138,9 +138,9 @@ class ClosureCompilerMiddleware(BaseMiddleware):
                     start=html_file.parent,
                 )
                 script_match = re.match(
-                    r"[\s\S]*<head[^>]*>[\s\S]*"
+                    r"[\s\S]*[\s\S]*"
                     r"< *script[^>]*>"
-                    r"[\s\S]*</script *>[\s\S]*</head *>[\s\S]*",
+                    r"[\s\S]*</script *>[\s\S]*[\s\S]*",
                     html_body,
                 )
                 if script_match is not None:
@@ -171,6 +171,7 @@ class ClosureCompilerMiddleware(BaseMiddleware):
                         ),
                         html_body,
                     )
+                    print(html_file)
                     # Add main.js
                     html_body = re.sub(
                         "</head *>",
