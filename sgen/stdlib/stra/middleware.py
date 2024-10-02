@@ -152,11 +152,13 @@ def change_to_localized_link(
     base_dir: Path,
     config: StraConfig,
 ):
-    prefix = match.group(1).decode("utf-8")
-    suffix = match.group(4).decode("utf-8")
+    prefix: str = match.group(1).decode("utf-8")
+    suffix: str = match.group(4).decode("utf-8")
     result: str = match.group(3).decode("utf-8")
     filename = result.split("/")[-1]
-    ext: str | None = filename.split(".")[-1] if "." in filename else None
+    ext: str | None = (
+        "." + filename.split(".")[-1] if "." in filename else None
+    )
 
     # Ignore other site and non-localized files
     if (

@@ -168,7 +168,8 @@ class ClosureCompilerMiddleware(BaseMiddleware):
                     # Add main.js
                     html_body = re.sub(
                         "</head *>",
-                        f"<script src='{relative_out_js_file}'></script></head>",
+                        f"<script src='{relative_out_js_file}'></script>"
+                        "</head>",
                         html_body,
                     )
                     # Remove it
