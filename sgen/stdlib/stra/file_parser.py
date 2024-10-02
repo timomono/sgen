@@ -64,6 +64,7 @@ class Stra:
             try:
                 lines[pointer]
             except IndexError:
+                value[key] = ""
                 break
             translated_text = ""
             while True:
@@ -90,7 +91,7 @@ class Stra:
 
         return Stra(value)
 
-    def __getitem__(self, item: str):
+    def __getitem__(self, item: str) -> str:
         return self._value[item]
 
     def __iter__(self) -> Generator[tuple[str, str], None, None]:

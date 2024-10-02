@@ -182,25 +182,40 @@ def get_key_trans_value(
     locale_file = localeDir / f"{locale}.stra"
     locale_data = Stra.from_load_file(locale_file)
     try:
-        return locale_data[key_name.decode("utf-8")].encode("utf-8")
+        res = locale_data[key_name.decode("utf-8")].encode("utf-8")
+        if res == b"":
+            return load_from_default_lang(
+                key_name, localeDir, locale, defaultLang
+            )
+        return res
     except KeyError:
-        # Try to load from defaultLang
-        locale_file = localeDir / f"{defaultLang}.stra"
-        locale_data = Stra.from_load_file(locale_file)
-        try:
-            defaultValue: str = locale_data[key_name.decode("utf-8")]
-            logger.warning(
-                f'Translation for "{key_name.decode("utf-8")}" not found for '
-                f"{locale}. Using default language."
-            )
-            return defaultValue.encode("utf-8")
-        except KeyError:
-            logger.warning(
-                f'Translation for "{key_name.decode("utf-8")}" not found. '
-                "Using key name."
-            )
-            return key_name
+        with open(locale_file, "ab") as f:
+            f.write(b"> " + key_name + b"\n")
+        return load_from_default_lang(key_name, localeDir, locale, defaultLang)
         # raise KeyError(f"Translation key \"{m.group("key_name")}\"")
+
+
+def load_from_default_lang(
+    key_name: bytes, localeDir: Path, locale: str, defaultLang: str
+):
+    # Try to load from defaultLang
+    locale_file = localeDir / f"{defaultLang}.stra"
+    locale_data = Stra.from_load_file(locale_file)
+    try:
+        defaultValue: str = locale_data[key_name.decode("utf-8")]
+        logger.warning(
+            f'Translation for "{key_name.decode("utf-8")}" not found for '
+            f"{locale}. Using default language."
+        )
+        if defaultValue == "":
+            raise KeyError()
+        return defaultValue.encode("utf-8")
+    except KeyError:
+        logger.warning(
+            f'Translation for "{key_name.decode("utf-8")}" not found. '
+            "Using key name."
+        )
+        return key_name
 
 
 def apply_t_include(config: StraConfig, locale: str, file: str):

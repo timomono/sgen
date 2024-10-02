@@ -171,7 +171,6 @@ class ClosureCompilerMiddleware(BaseMiddleware):
                         ),
                         html_body,
                     )
-                    print(html_file)
                     # Add main.js
                     html_body = re.sub(
                         "</head *>",
