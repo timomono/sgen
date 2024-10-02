@@ -115,7 +115,7 @@ class LocalizationMiddleware(BaseMiddleware):
                     body = ff.read()
                 # Apply key translation
                 body = re.sub(
-                    rb'\[\[trans \(key:"(?P<key_name>[a-zA-Z0-9-_.]*)"\)\]\]',
+                    rb'\[\[trans \(key:"(?P<key_name>[a-zA-Z0-9-_. ]*)"\)\]\]',
                     lambda m: get_key_trans_value(
                         m, localeDir, locale, self.config.default_lang
                     ),
