@@ -145,24 +145,30 @@ class ClosureCompilerMiddleware(BaseMiddleware):
                 )
                 if script_match is not None:
                     # print(f"Removing on {html_file}")
+                    # Remove script tags
                     html_body = re.sub(
                         r"(<head[^>]*>)([\s\S]*?)(</head *>)",
                         lambda hm: hm.group(1)
                         + re.sub(
-                            r"< *script(?:[^>]*?"
-                            r"src=[\"']?([^\"']+)[\"']?[^>]*?)?[^>]*>"
-                            r"[\s\S]*?</script *>",
-                            lambda m: (
-                                ""
-                                if urlparse(m.group(1)).hostname is None
-                                and not (
-                                    m.group(1) is None and self.script_tag
-                                )
-                                else m.string
-                            ),
+                            r"(<script(?![^>]*\bsrc\b)[^>]*>[\s\S]*?"
+                            r"</script *>)",
+                            lambda m: ("" if self.script_tag else m.group(0)),
                             hm.group(2),
                         )
                         + hm.group(3),
+                        html_body,
+                    )
+                    # print(html_body)
+                    # Remove tag with src
+                    html_body = re.sub(
+                        r"(< *script(?:[^>]*?"
+                        r"src=[\"']?([^\"']+)[\"']?[^>]*?)[^>]*>"
+                        r"[\s\S]*?</script *>)",
+                        lambda m: (
+                            ""
+                            if urlparse(m.group(2)).hostname is None
+                            else m.group(1)
+                        ),
                         html_body,
                     )
                     # Add main.js
