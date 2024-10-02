@@ -76,6 +76,7 @@ class Stra:
                 if line.startswith(">"):
                     break
                 if line.strip() == "":
+                    pointer += 1
                     continue
                 translated_text += line + "\n"
                 pointer += 1
