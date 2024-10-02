@@ -1,5 +1,7 @@
 import re
 
+from sgen.stdlib.smini.svg_minify import svg_minify
+
 
 def minify(
     text: str,
@@ -28,6 +30,8 @@ def minify(
         res = re.sub(r"/\*.*?\*/", "", res)
         if JSRemoveBr:
             res = re.sub(r"(\n|\r\n)", "", res)
+    elif ext == ".svg":
+        res = svg_minify(res)
     else:
         res = res
     return res
