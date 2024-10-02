@@ -3,7 +3,7 @@ import io
 from xml.etree import ElementTree
 
 
-def minify(input: str) -> str:
+def svg_minify(input: str) -> str:
     tree = ElementTree.ElementTree(ElementTree.fromstring(input))
     namespaces = {
         node
