@@ -18,7 +18,6 @@ document.addEventListener("DOMContentLoaded", async (event) => {
             // Drag & drop
             element.addEventListener("mousedown", (e) => e.preventDefault())
             // Overlay a transparent dummy image
-            const parent = element.parentElement;
             const dummy_img = document.createElement("img");
             dummy_img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAAtJREFUGFdjYAACAAAFAAGq1chRAAAAAElFTkSuQmCC";
 
@@ -35,7 +34,7 @@ document.addEventListener("DOMContentLoaded", async (event) => {
             dummy_img.addEventListener("contextmenu", (e) => e.preventDefault())
             // Drag & drop
             dummy_img.addEventListener("mousedown", (e) => e.preventDefault())
-            parent.append(div_element);
+            element.parentNode.insertBefore(div_element, element);
             div_element.append(element)
             div_element.append(dummy_img)
         }
