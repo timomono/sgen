@@ -45,7 +45,7 @@ class Stra:
                     break
 
                 if not (line.startswith("> ")) and (
-                    line.lstrip() != "" or line == "pass"):
+                        line.lstrip() != "" or line == "pass"):
                     break
                 if line.lstrip() == "":
                     # key += "\n"
