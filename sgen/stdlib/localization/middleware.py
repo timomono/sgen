@@ -194,13 +194,13 @@ def get_key_trans_value(
             localeJson = json.load(f)
         try:
             defaultValue: str = localeJson[key_name.decode("utf-8")]
-            logger.warning(
+            logger.info(
                 f'Translation for "{key_name.decode("utf-8")}" not found for '
                 f"{locale}. Using default language."
             )
             return defaultValue.encode("utf-8")
         except KeyError:
-            logger.warning(
+            logger.info(
                 f'Translation for "{key_name.decode("utf-8")}" not found. '
                 "Using key name."
             )
