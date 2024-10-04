@@ -203,7 +203,7 @@ def load_from_default_lang(
     locale_data = Stra.from_load_file(locale_file)
     try:
         defaultValue: str = locale_data[key_name.decode("utf-8")]
-        logger.warning(
+        logger.debug(
             f'Translation for "{key_name.decode("utf-8")}" not found for '
             f"{locale}. Using default language."
         )
@@ -211,7 +211,7 @@ def load_from_default_lang(
             raise KeyError()
         return defaultValue.encode("utf-8")
     except KeyError:
-        logger.warning(
+        logger.debug(
             f'Translation for "{key_name.decode("utf-8")}" not found. '
             "Using key name."
         )
