@@ -174,7 +174,7 @@ class ClosureCompilerMiddleware(BaseMiddleware):
                     # Add main.js
                     html_body = re.sub(
                         "</head *>",
-                        f"<script src='{relative_out_js_file}'></script>"
+                        f"<script src='{relative_out_js_file}' async></script>"
                         "</head>",
                         html_body,
                     )

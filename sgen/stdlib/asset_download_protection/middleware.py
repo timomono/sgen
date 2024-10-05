@@ -37,6 +37,7 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
             path
             for path in build_path.glob("**/*")
             if path.suffix not in (".html", ".htm", ".css", ".js")
+            and path.name not in ("sitemap.xml", "robots.txt")
             and path.is_file()
         ):
             temp_file_path = file.parent / (file.name + ".tmp")
@@ -101,12 +102,15 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
                     iter=2,
                 ),
             )
-
+            filename = ".".join(file.name.split(".")[:-1])
+            decode_img_js: Path = file.parent / (filename + "-decode-img.js")
+            with open(decode_img_js, "w") as f:
+                f.write(list_string)
             result = re.sub(
                 r"(< */ *head *>)",
-                r"<script>"
-                + list_string.replace("\\", "\\\\")
-                + r"</script>\1",
+                rf"<script async "
+                rf'src="{decode_img_js.relative_to(file.parent)}">'
+                rf"</script>\1",
                 result,
             )
             with open(file, "w") as f:
