@@ -31,6 +31,8 @@ class LiveSassMiddleware(BaseMiddleware):
 
     @override
     def do(self, build_dir: Path):
+        # TODO: Only build on update saas
+        # (Add optional "change_file" parameter?)
         from sgen.get_config import sgen_config
 
         logger.info("Compiling sass...")
@@ -42,8 +44,10 @@ class LiveSassMiddleware(BaseMiddleware):
             + self.options,
             encoding="utf-8",
             stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE,
         )
-        logger.info("Compiled")
         if res.stderr != "":
             logger.warning("[SASS STDERR]\n" + res.stderr)
-        logger.warning(f"{sgen_config.SRC_DIR}:{build_dir/self.out_filename}")
+        if res.stdout != "":
+            logger.warning("[SASS STDOUT]\n" + res.stdout)
+        logger.info("Compiled")
