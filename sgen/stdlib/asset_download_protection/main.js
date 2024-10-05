@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", async (event) => {
             dummy_img.style.bottom = "0";
             dummy_img.style.left = "0";
             dummy_img.style.right = "0";
+            dummy_img.alt = "Dummy image";
             // Context menu
             dummy_img.addEventListener("contextmenu", (e) => e.preventDefault())
             // Drag & drop
