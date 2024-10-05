@@ -165,6 +165,7 @@ def change_to_localized_link(
         (urlparse(result).netloc != "")
         or (ext not in config.localize_file and ext is not None)
         or (result.startswith("#"))
+        or result.startswith("data:")
     ):
         return rf'{prefix}"{result}"{suffix}'.encode("utf-8")
 
