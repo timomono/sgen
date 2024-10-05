@@ -30,7 +30,15 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
     Please note that this package cannot completely suppress asset downloads.
     """
 
+    def __init__(self, except_debug: bool = True) -> None:
+        self.except_debug = except_debug
+        super().__init__()
+
     def do(self, build_path: Path) -> None:
+        from sgen.get_config import sgen_config
+
+        if self.except_debug and sgen_config:
+            return
         EXCLUDE_SUFFIXES = (".html", ".htm", ".css", ".js", ".svg")
         with open(build_path / ".htaccess", "w") as f:
             f.write(HTACCESS_STR)
