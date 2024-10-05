@@ -45,7 +45,7 @@ def minify(
         res = repl_css(r" +", " ", res)
         res = repl_css(r"/\*.*?\*/", "", res)
         res = repl_css(
-            r" *(?P<symbol>[:;,!\*><]) *", lambda m: m.group("symbol"), res
+            r" *(?P<symbol>[:;,!><]) *", lambda m: m.group("symbol"), res
         )
         res = repl_css(r" *{ *", "{", res)
         res = repl_css(r" *} *", "}", res)

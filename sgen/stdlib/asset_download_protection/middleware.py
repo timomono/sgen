@@ -31,12 +31,13 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
     """
 
     def do(self, build_path: Path) -> None:
+        EXCLUDE_SUFFIXES = (".html", ".htm", ".css", ".js", ".svg")
         with open(build_path / ".htaccess", "w") as f:
             f.write(HTACCESS_STR)
         for file in (
             path
             for path in build_path.glob("**/*")
-            if path.suffix not in (".html", ".htm", ".css", ".js")
+            if path.suffix not in EXCLUDE_SUFFIXES
             and path.name not in ("sitemap.xml", "robots.txt")
             and path.is_file()
         ):
@@ -62,7 +63,10 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
             def replace_src(match: re.Match) -> str:
                 attr_name: str = match.group(2)
                 value: str = match.group(3)
-                if urlparse(value).hostname is not None:
+                if (
+                    urlparse(value).hostname is not None
+                    or "." + value.split(".")[-1] in EXCLUDE_SUFFIXES
+                ):
                     return (
                         match.group(1)
                         + attr_name
@@ -90,6 +94,7 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
             result: str = re.sub(
                 r"(<(?!script)[a-zA-Z0-9]+ +[^>]*)"
                 r"""(src) *= *["']?([^>"' ]*)["']?( *[^>]*>)""",
+                # src|xlink:href
                 replace_src,
                 body,
             )
