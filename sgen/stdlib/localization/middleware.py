@@ -157,8 +157,8 @@ def change_to_localized_link(
     base_dir: Path,
     config: LocalizationConfig,
 ):
-    prefix = match.group(1).decode("utf-8")
-    suffix = match.group(4).decode("utf-8")
+    prefix: str = match.group(1).decode("utf-8")
+    suffix: str = match.group(4).decode("utf-8")
     result: str = match.group(3).decode("utf-8")
     filename = result.split("/")[-1]
     ext: str | None = filename.split(".")[-1] if "." in filename else None
@@ -168,6 +168,7 @@ def change_to_localized_link(
         (urlparse(result).netloc != "")
         or (ext not in config.localize_file and ext is not None)
         or (result.startswith("#"))
+        or result.startswith("data:")
     ):
         return rf'{prefix}"{result}"{suffix}'.encode("utf-8")
 
