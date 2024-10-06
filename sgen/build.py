@@ -46,6 +46,10 @@ def build() -> None:
         # with open(file, mode="r") as f:
         #     template = Template(f.read())
         with open(sgen_config.BUILD_DIR / file.relative_to(srcDir), "w") as f:
-            f.write(template.render())
+            f.write(
+                template.render(
+                    relative_url="/" + str(file.relative_to(srcDir))
+                )
+            )
     for middleware in sgen_config.MIDDLEWARE:
         middleware.do(sgen_config.BUILD_DIR)
