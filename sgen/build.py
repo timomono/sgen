@@ -27,12 +27,15 @@ def build() -> None:
         )  # TODO: Python 3.13 don't need onexc?
     sgen_config.BUILD_DIR.mkdir()
     TEMPLATE_EXTS = [".txt", ".text", ".html", ".htm", ".css", ".js", ".php"]
+    IGNORE_EXTS = [".scss", ".sass", ".ts"]
     for file in files:
         if file.is_dir():
             continue
+
         if file in sgen_config.IGNORE_FILES:
             continue
-
+        if file.suffix in IGNORE_EXTS:
+            continue
         exportPath = sgen_config.BUILD_DIR / file.relative_to(srcDir)
         if not (exportPath.parent.exists()):
             exportPath.parent.mkdir(parents=True)
