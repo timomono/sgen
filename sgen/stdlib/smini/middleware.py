@@ -30,11 +30,9 @@ class SminiMiddleware(BaseMiddleware):
     def __init__(
         self,
         js_delete_br=False,
-        html_delete_br=False,
         except_debug=True,
     ) -> None:
         self.js_delete_br = js_delete_br
-        self.html_delete_br = html_delete_br
         self.except_debug = except_debug
         super().__init__()
 
@@ -51,7 +49,6 @@ class SminiMiddleware(BaseMiddleware):
                 result = minify(
                     f.read(),
                     filePath.suffix,
-                    self.html_delete_br,
                     self.js_delete_br,
                 )
             with open(filePath, "w") as f:

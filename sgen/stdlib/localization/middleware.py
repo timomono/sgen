@@ -253,6 +253,5 @@ def localeRedirectIndex(localesStr: str, config: LocalizationConfig) -> str:
 </html>
     """,
         ext=".html",
-        HTMLRemoveBr=True,
         JSRemoveBr=True,
     )
