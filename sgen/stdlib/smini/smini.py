@@ -101,6 +101,8 @@ def minify(
             lambda m: m.group("symbol"),
             res,
         )
+        res = re.sub(r";}", r"}", res)
+        res = re.sub(r";(\n|\r\n| )*", r";", res)
         if JSRemoveBr:
             res = re.sub(r"(\n|\r\n)", "", res)
     elif ext == ".svg":
