@@ -2,7 +2,7 @@ from abc import ABC
 from pathlib import Path
 from typing import override
 from sgen.base_middleware import BaseMiddleware
-from sgen.stdlib.smini.smini import minify
+from sgen.stdlib.smini.smini import MINIFY_EXTS, minify
 
 
 class BaseSminiConfig(ABC):
@@ -45,9 +45,7 @@ class SminiMiddleware(BaseMiddleware):
         if self.except_debug and sgen_config.DEBUG:
             return
         for filePath in (
-            p
-            for p in build_path.glob("**/*")
-            if p.suffix in {".html", ".css", ".js"}
+            p for p in build_path.glob("**/*") if p.suffix in MINIFY_EXTS
         ):
             with open(filePath, "r") as f:
                 result = minify(
