@@ -44,15 +44,14 @@ class XMLSitemapMiddleware(BaseMiddleware):
             new_url_tag = ET.SubElement(urlset, "url")
             ET.SubElement(new_url_tag, "loc").text = new_url
         doc: bytes
-        if sgen_config.DEBUG:
-            ET.indent(urlset, space="  ")
-            doc = ET.tostring(urlset, "utf-8", xml_declaration=True)
-        else:
-            doc = ET.tostring(urlset, "utf-8", xml_declaration=True)
-            doc = re.sub(r"[ 　\n]+".encode(), rb" ", doc)
-            doc = re.sub(rb"> +<", rb"><", doc)
-            print(doc.decode())
-        with open(build_path / "sitemap.xml", "wb") as f:
-            f.write(doc)
+
+        ET.indent(urlset, space="  ")
+        doc = ET.tostring(urlset, "utf-8", xml_declaration=True)
         with open(sgen_config.SRC_DIR / "sitemap.xml", "wb") as f:
+            f.write(doc)
+
+        doc = ET.tostring(urlset, "utf-8", xml_declaration=True)
+        doc = re.sub(r"[ 　\n]+".encode(), rb" ", doc)
+        doc = re.sub(rb" *([><]) *", rb"\1", doc)
+        with open(build_path / "sitemap.xml", "wb") as f:
             f.write(doc)
