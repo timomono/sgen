@@ -198,7 +198,11 @@ def get_key_trans_value(
         return res
     except KeyError:
         with open(locale_file, "ab") as f:
-            f.write(b"\n> " + key_name + b"\npass")
+            f.write(
+                b"\n> "
+                + key_name.replace(b"\r\n", b"\r\n>").replace(b"\n", b"\n>")
+                + b"\npass"
+            )
         return load_from_default_lang(key_name, localeDir, locale, defaultLang)
         # raise KeyError(f"Translation key \"{m.group("key_name")}\"")
 
