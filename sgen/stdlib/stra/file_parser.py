@@ -101,7 +101,7 @@ class Stra:
         return Stra(value)
 
     def __getitem__(self, item: str) -> str:
-        return self._value[item]
+        return self._value["\n".join(s.lstrip() for s in item.splitlines())]
 
     def __iter__(self) -> Generator[tuple[str, str], None, None]:
         yield from self._value.items()
@@ -119,7 +119,8 @@ class Stra:
 if __name__ == "__main__":
     input_string = """> Hello world
 こんにちは世界
-> Good morning
+> Good
+> morning
 おはようございます
 > How are you?
 pass
