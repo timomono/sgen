@@ -58,13 +58,13 @@ class Stra:
                     ).group(  # type: ignore
                         1
                     )
-                    + "\n"
+                    + " "
                 )
                 pointer += 1
             if key == "":
                 raise StraParseError(f"Excepted key at line {pointer}")
             # Remove \n
-            if key[-1] == "\n":
+            if key[-1] == " ":
                 key = key[:-1]
             try:
                 lines[pointer]
@@ -101,7 +101,7 @@ class Stra:
         return Stra(value)
 
     def __getitem__(self, item: str) -> str:
-        return self._value["\n".join(s.lstrip() for s in item.splitlines())]
+        return self._value[" ".join(s.lstrip() for s in item.splitlines())]
 
     def __iter__(self) -> Generator[tuple[str, str], None, None]:
         yield from self._value.items()
