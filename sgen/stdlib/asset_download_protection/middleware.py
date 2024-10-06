@@ -16,9 +16,8 @@ allow from env=samesite
 </Files>
 """
 )
-
-with open(Path(__file__).parent / "minified.js") as f:
-    SCRIPT_STR = f.read()
+# main.js minified version
+SCRIPT_STR = """async function f(){var a=[];for(var b of document.querySelectorAll("*[data-prot-src-id]")){const d=a[b.dataset.protSrcId],c=await (await fetch(d)).blob();let e=URL.createObjectURL(c.slice(1,c.size,c.type));e=e+"#"+d.split("#").slice(-1)[0];void 0!==b.src?b.src=e:void 0!==b.getAttribute("xlink:href")&&b.setAttribute("xlink:href",e);b.addEventListener("load",()=>URL.revokeObjectURL(e))}for(const d of document.querySelectorAll("img"))d.addEventListener("contextmenu",c=>c.preventDefault()),d.addEventListener("mousedown",c=>c.preventDefault()),d.style["pointer-events"]="none",a=document.createElement("img"),a.src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAAtJREFUGFdjYAACAAAFAAGq1chRAAAAAElFTkSuQmCC",b=document.createElement("div"),b.style.display=d.style.display,b.style.position="relative",a.style.position="absolute",a.style.width="100%",a.style.height="100%",a.style.top="0",a.style.bottom="0",a.style.left="0",a.style.right="0",a.alt="Dummy image",a.addEventListener("contextmenu",c=>c.preventDefault()),a.addEventListener("mousedown",c=>c.preventDefault()),d.parentNode.insertBefore(b,d),b.append(d),b.append(a)}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",()=>f()):f();"""  # noqa:E501
 
 SCRIPT_STR = SCRIPT_STR.replace("{", "{{")
 SCRIPT_STR = SCRIPT_STR.replace("}", "}}")

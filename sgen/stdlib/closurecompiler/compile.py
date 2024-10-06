@@ -1,13 +1,12 @@
 from enum import Enum
 import subprocess
 from pathlib import Path
+import sysconfig
 from typing import Any, Iterable
 
-compilerJarFile = (
-    Path(__file__).parent.parent.parent
-    / "dependencies"
-    / "closure-compiler.jar"
-)
+
+data_path = Path(sysconfig.get_paths()["data"])
+compilerJarFile = data_path / "sgen_deps" / "closure-compiler.jar"
 
 
 class CompileError(Exception):
