@@ -9,7 +9,6 @@ MINIFY_EXTS = {".html", ".css", ".js", ".svg"}
 def minify(
     text: str,
     ext: str,
-    HTMLRemoveBr: bool = False,
     JSRemoveBr: bool = False,
 ) -> str:
     res = text
@@ -24,25 +23,39 @@ def minify(
                 r"(?P<css_prefix><style[\s\S]*?>)"
                 r"(?P<css_body>[\s\S]*?)"
                 r"(?P<css_suffix></style>)|"
+                r"(?P<js_prefix><script[\s\S]*?>)"
+                r"(?P<js_body>[\s\S]*?)"
+                r"(?P<js_suffix></script>)|"
                 r"(?P<r_body>" + regexp + r")",
                 lambda m: (
                     (replace_str(m) if callable(replace_str) else replace_str)
                     if m.group("r_body")
-                    else m.group("css_prefix")
-                    + re.sub(
-                        r"^(?: |\n|\r\n)*([\s\S]*)(?: |\n|\r\n)*$",
-                        r"\1",
-                        minify(m.group("css_body"), ".css"),
+                    else (
+                        m.group("css_prefix")
+                        + re.sub(
+                            r"^(?: |\n|\r\n)*([\s\S]*)(?: |\n|\r\n)*$",
+                            r"\1",
+                            minify(m.group("css_body"), ".css"),
+                        )
+                        + m.group("css_suffix")
+                        if m.group("css_body")
+                        else (
+                            re.sub(r"( |\n|\r\n)+", " ", m.group("js_prefix"))
+                            + re.sub(
+                                r"^(?: |\n|\r\n)*([\s\S]*)(?: |\n|\r\n)*$",
+                                r"\1",
+                                minify(m.group("js_body"), ".js"),
+                            )
+                            + m.group("js_suffix")
+                        )
                     )
-                    + m.group("css_suffix")
                 ),
                 from_,
             )
 
         res = repl_html(r" +", " ", res)
         res = repl_html(r"<!--[\s\S]*?-->", "", res)
-        if HTMLRemoveBr:
-            res = repl_html(r"(\n|\r\n)", "", res)
+        res = repl_html(r"(\n|\r\n)", "", res)
         res = repl_html(
             r"(?: |\n|\r\n)*(?P<bracket>[><])(?: |\n|\r\n)*",
             lambda m: m.group("bracket"),
@@ -83,6 +96,11 @@ def minify(
     elif ext == ".js":
         res = "\n".join([s.split("//")[0] for s in re.split("\n|\r\n", res)])
         res = re.sub(r"/\*.*?\*/", "", res)
+        res = re.sub(
+            r"( |\n|\r\n)*(?P<symbol>[\{\}])( |\n|\r\n)*",
+            lambda m: m.group("symbol"),
+            res,
+        )
         if JSRemoveBr:
             res = re.sub(r"(\n|\r\n)", "", res)
     elif ext == ".svg":

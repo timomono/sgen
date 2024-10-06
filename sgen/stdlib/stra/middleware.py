@@ -277,6 +277,5 @@ def localeRedirectIndex(localesStr: str, config: StraConfig) -> str:
 </html>
     """,
         ext=".html",
-        HTMLRemoveBr=True,
         JSRemoveBr=True,
     )
