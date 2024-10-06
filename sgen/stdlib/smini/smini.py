@@ -9,16 +9,45 @@ MINIFY_EXTS = {".html", ".css", ".js", ".svg"}
 def minify(
     text: str,
     ext: str,
-    HTMLRemoveBr: bool,
-    JSRemoveBr: bool,
+    HTMLRemoveBr: bool = False,
+    JSRemoveBr: bool = False,
 ) -> str:
     res = text
     if ext == ".html":
-        res = re.sub(r" +", " ", res)
-        res = re.sub(r"<!--[\s\S]*?-->", "", res)
+
+        def repl_html(
+            regexp: str,
+            replace_str: str | Callable[[re.Match], str],
+            from_: str,
+        ) -> str:
+            return re.sub(
+                r"(?P<css_prefix><style[\s\S]*?>)"
+                r"(?P<css_body>[\s\S]*?)"
+                r"(?P<css_suffix></style>)|"
+                r"(?P<r_body>" + regexp + r")",
+                lambda m: (
+                    (replace_str(m) if callable(replace_str) else replace_str)
+                    if m.group("r_body")
+                    else m.group("css_prefix")
+                    + re.sub(
+                        r"^(?: |\n|\r\n)*([\s\S]*)(?: |\n|\r\n)*$",
+                        r"\1",
+                        minify(m.group("css_body"), ".css"),
+                    )
+                    + m.group("css_suffix")
+                ),
+                from_,
+            )
+
+        res = repl_html(r" +", " ", res)
+        res = repl_html(r"<!--[\s\S]*?-->", "", res)
         if HTMLRemoveBr:
-            res = re.sub(r"(\n|\r\n)", "", res)
-        res = re.sub(r"(?: |\n|\r\n)*([><])(?: |\n|\r\n)*", r"\1", res)
+            res = repl_html(r"(\n|\r\n)", "", res)
+        res = repl_html(
+            r"(?: |\n|\r\n)*(?P<bracket>[><])(?: |\n|\r\n)*",
+            lambda m: m.group("bracket"),
+            res,
+        )
     elif ext == ".css":
         # res = re.sub(r"(\n|\r\n)", "", res)
         # Delete break line except for in important comment
