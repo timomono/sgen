@@ -94,6 +94,7 @@ def minify(
         res = repl_css(r" *} *", "}", res)
         res = repl_css(r";}", "}", res)
     elif ext == ".js":
+        # TODO: JS @license support
         res = "\n".join([s.split("//")[0] for s in re.split("\n|\r\n", res)])
         res = re.sub(r"/\*.*?\*/", "", res)
         res = re.sub(
