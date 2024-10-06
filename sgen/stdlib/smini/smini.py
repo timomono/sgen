@@ -18,8 +18,7 @@ def minify(
         res = re.sub(r"<!--[\s\S]*?-->", "", res)
         if HTMLRemoveBr:
             res = re.sub(r"(\n|\r\n)", "", res)
-        res = re.sub(r">( |\n|\r\n)+<", "><", res)
-        res = re.sub(r"( |\n|\r\n)*(<|>)( |\n|\r\n)*", r"\2", res)
+        res = re.sub(r"(?: |\n|\r\n)*([><])(?: |\n|\r\n)*", r"\1", res)
     elif ext == ".css":
         # res = re.sub(r"(\n|\r\n)", "", res)
         # Delete break line except for in important comment
