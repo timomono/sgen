@@ -143,6 +143,13 @@ class StraMiddleware(BaseMiddleware):
                 with open(out_filepath, "wb") as ff:
                     ff.write(body)
         shutil.rmtree(temp_path)
+        for directory in buildPath.glob("**/*"):
+            # Is empty directory?
+            if directory.is_dir() and not any(
+                d for d in directory.glob("*") if d.is_file()
+            ):
+                logger.info(f"deleting {directory}")
+                shutil.rmtree(directory)
 
 
 def change_to_localized_link(
