@@ -148,7 +148,6 @@ class StraMiddleware(BaseMiddleware):
             if directory.is_dir() and not any(
                 d for d in directory.glob("*") if d.is_file()
             ):
-                logger.info(f"deleting {directory}")
                 shutil.rmtree(directory)
 
 

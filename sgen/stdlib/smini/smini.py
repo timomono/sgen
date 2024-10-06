@@ -3,6 +3,8 @@ from typing import Callable
 
 from sgen.stdlib.smini.svg_minify import svg_minify
 
+MINIFY_EXTS = {".html", ".css", ".js", ".svg"}
+
 
 def minify(
     text: str,

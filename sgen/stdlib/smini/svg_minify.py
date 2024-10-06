@@ -23,11 +23,31 @@ def svg_minify(input: str) -> str:
         replaceStyle(element, r"(?<!-)stroke-opacity: *1;?")
 
         # Remove id
-        element.attrib.pop("id", "")
+        if not (
+            re.match(
+                r"[\s\S]* *<!--( |\n|\r\n)*smini( |\n|\r\n)*:( |\n|\r\n)*"
+                r"except[-_]id( |\n|\r\n)*-->[\s\S]*",
+                input,
+                re.IGNORECASE,
+            )
+            or (
+                re.match(
+                    r"[\s\S]* *<!--( |\n|\r\n)*smini( |\n|\r\n)*:( |\n|\r\n)*"
+                    r"except[-_]root[-_]id( |\n|\r\n)*-->[\s\S]*",
+                    input,
+                    re.IGNORECASE,
+                )
+                and element == root
+            )
+        ):
+            element.attrib.pop("id", "")
 
     # tree.write("out.svg", xml_declaration=True)
     xmlStr = ElementTree.tostring(
-        root, encoding="utf-8", method="xml", xml_declaration=True
+        root,
+        encoding="utf-8",
+        method="xml",
+        # xml_declaration=True,
     ).decode("utf-8")
     xmlStr = re.sub(r">\s+<", "><", xmlStr)
     xmlStr = re.sub(r"<defs .*?/>", "", xmlStr)
