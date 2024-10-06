@@ -200,7 +200,9 @@ def get_key_trans_value(
         with open(locale_file, "ab") as f:
             f.write(
                 b"\n> "
-                + key_name.replace(b"\r\n", b"\r\n>").replace(b"\n", b"\n>")
+                + b"\n".join((line.lstrip() for line in key_name.splitlines()))
+                .replace(b"\r\n", b"\r\n> ")
+                .replace(b"\n", b"\n> ")
                 + b"\npass"
             )
         return load_from_default_lang(key_name, localeDir, locale, defaultLang)
