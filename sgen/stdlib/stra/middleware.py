@@ -129,9 +129,9 @@ class StraMiddleware(BaseMiddleware):
                 )
                 # Change link
                 body = re.sub(
-                    rb"(< *[a-zA-Z]+ +[^>]*(src|href)=)"
-                    rb"[\"\']?([^>\"' ]*)[\"\']?"
-                    rb"( *[^>]*>)",
+                    rb"(?P<tag>(?P<prefix>< *[a-zA-Z]+ +[^>]*(?:src|href)=)"
+                    rb"[\"\']?(?P<result>[^>\"' ]*)[\"\']?"
+                    rb"(?P<suffix> *[^>]*>))",
                     # m.groups: (b'<a href=', b'href', b'#', b'>')
                     lambda m: change_to_localized_link(
                         m, locale, file, temp_path, self.config
@@ -158,9 +158,10 @@ def change_to_localized_link(
     base_dir: Path,
     config: StraConfig,
 ):
-    prefix: str = match.group(1).decode("utf-8")
-    suffix: str = match.group(4).decode("utf-8")
-    result: str = match.group(3).decode("utf-8")
+    prefix: str = match.group("prefix").decode("utf-8")
+    suffix: str = match.group("suffix").decode("utf-8")
+    result: str = match.group("result").decode("utf-8")
+    tag: str = match.group("tag")
     filename = result.split("/")[-1]
     ext: str | None = (
         "." + filename.split(".")[-1] if "." in filename else None
@@ -173,7 +174,7 @@ def change_to_localized_link(
         or (result.startswith("#"))
         or result.startswith("data:")
     ):
-        return rf'{prefix}"{result}"{suffix}'.encode("utf-8")
+        return tag
 
     relative_path = file.relative_to(base_dir)
     absolute_url = urljoin(str(relative_path), urlparse(result).path)
