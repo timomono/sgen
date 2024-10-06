@@ -24,6 +24,8 @@ async function decodeImages() {
             element.addEventListener("contextmenu", (e) => e.preventDefault())
             // Drag & drop
             element.addEventListener("mousedown", (e) => e.preventDefault())
+            // Long press (smart phone)
+            element.style["pointer-events"] = "none";
             // Overlay a transparent dummy image
             const dummy_img = document.createElement("img");
             dummy_img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAAtJREFUGFdjYAACAAAFAAGq1chRAAAAAElFTkSuQmCC";

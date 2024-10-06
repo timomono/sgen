@@ -37,7 +37,7 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
     def do(self, build_path: Path) -> None:
         from sgen.get_config import sgen_config
 
-        if self.except_debug and sgen_config:
+        if self.except_debug and sgen_config.DEBUG:
             return
         EXCLUDE_SUFFIXES = (".html", ".htm", ".css", ".js", ".svg")
         with open(build_path / ".htaccess", "w") as f:
@@ -112,7 +112,8 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
                     + ",".join(map(lambda v: '"' + v[1] + '"', sources))
                     + "]",
                     debugger=False,
-                    iter=2,
+                    iter=0,
+                    format=False,
                 ),
             )
             filename = ".".join(file.name.split(".")[:-1])
