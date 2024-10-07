@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import re
 import shutil
-from typing import override
+from sgen.components.override_decorator import override
 from urllib.parse import urlparse
 import uuid
 from sgen.base_middleware import BaseMiddleware

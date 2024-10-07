@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import override
+from sgen.components.override_decorator import override
 from sgen.base_config import BaseConfig
 from sgen.cli import running_command
 from sgen.cmds import ListenChange

@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from pathlib import Path
-from typing import override
-from base_middleware import BaseMiddleware
+from sgen.components.override_decorator import override
+from sgen.base_middleware import BaseMiddleware
 
 
 class BaseCheck:

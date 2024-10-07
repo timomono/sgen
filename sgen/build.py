@@ -1,4 +1,5 @@
 import shutil
+import sys
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from logging import getLogger
 from sgen.get_config import sgen_config
@@ -22,9 +23,14 @@ def build() -> None:
     files = srcDir.glob("**/*")
     if sgen_config.BUILD_DIR.exists():
         logger.info("Build directory already exists. Removing...")
-        shutil.rmtree(
-            sgen_config.BUILD_DIR, onexc=lambda _, __, ___: None
-        )  # TODO: Python 3.13 don't need onexc?
+        if sys.version_info >= (3, 12):
+            shutil.rmtree(
+                sgen_config.BUILD_DIR, onexc=lambda _, __, ___: None
+            )  # TODO: Python 3.13 don't need onexc?
+        else:
+            shutil.rmtree(
+                sgen_config.BUILD_DIR, ignore_errors=True
+            )  # TODO: Python 3.13 don't need onexc?
     sgen_config.BUILD_DIR.mkdir()
     TEMPLATE_EXTS = [".txt", ".text", ".html", ".htm", ".css", ".js", ".php"]
     IGNORE_EXTS = [".scss", ".sass", ".ts"]

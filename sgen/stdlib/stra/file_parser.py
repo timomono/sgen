@@ -45,7 +45,8 @@ class Stra:
                     break
 
                 if not (line.startswith("> ")) and (
-                        line.lstrip() != "" or line == "pass"):
+                    line.lstrip() != "" or line == "pass"
+                ):
                     break
                 if line.lstrip() == "":
                     # key += "\n"
@@ -125,13 +126,11 @@ if __name__ == "__main__":
 > How are you?
 pass
 """
-    print(f"in str\t:{input_string.replace("\n", "[\\n]")}")
+    string = input_string.replace("\n", "[\\n]")
+    print(f"in str\t:{string}")
     stra_obj = Stra.from_parse_text(
-                input_string,
-            )
+        input_string,
+    )
     print("object\t:", stra_obj.ordered_dict)
     print(stra_obj["Good morning"])
-    print(
-        "to str\t:",
-        str(stra_obj).replace("\n", "[\\n]")
-    )
+    print("to str\t:", str(stra_obj).replace("\n", "[\\n]"))

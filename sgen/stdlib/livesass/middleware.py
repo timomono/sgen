@@ -2,7 +2,7 @@ from logging import getLogger
 from sgen.base_middleware import BaseMiddleware
 import subprocess
 from pathlib import Path
-from typing import override
+from sgen.components.override_decorator import override
 
 logger = getLogger(__name__)
 
