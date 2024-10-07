@@ -1,6 +1,6 @@
 from abc import ABC
 from pathlib import Path
-from typing import override
+from sgen.components.override_decorator import override
 from sgen.base_middleware import BaseMiddleware
 from sgen.stdlib.smini.smini import MINIFY_EXTS, minify
 

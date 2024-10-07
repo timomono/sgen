@@ -1,6 +1,7 @@
 from pathlib import Path
 import re
-from typing import Iterable, override
+from typing import Iterable
+from sgen.components.override_decorator import override
 from sgen.base_middleware import BaseMiddleware
 import xml.etree.ElementTree as ET
 

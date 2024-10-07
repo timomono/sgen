@@ -38,7 +38,7 @@ def deprecated(message_or_func: str | Callable):
         # f.__init__ = new_init  # type:ignore
 
         def _wrapper(*args, **keywords):
-            if callable(message):
+            if message is None:
                 raise TypeError("Message should not be callable")
             warnings.warn(
                 f"'{f.__name__}' is deprecated and shouldn't be used. "

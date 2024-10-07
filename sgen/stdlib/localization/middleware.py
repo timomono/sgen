@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 import shutil
-from typing import override
+from sgen.components.override_decorator import override
 from urllib.parse import urljoin, urlparse
 from sgen.base_middleware import BaseMiddleware
 from sgen.components.deprecated_decorator import deprecated
