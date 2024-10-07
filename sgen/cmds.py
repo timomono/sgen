@@ -15,7 +15,7 @@ class Command(ABC):
         pass
 
     @abstractmethod
-    def run(self, param: list):
+    def run(self, param: list[str]):
         pass
 
 
@@ -23,7 +23,7 @@ class Build(Command):
     # pass
     name = "build"
 
-    def run(self, param: list):
+    def run(self, param):
         from sgen.build import build  # type: ignore
 
         if len(param) != 0:
@@ -39,7 +39,7 @@ class Build(Command):
 class ListenChange(Command):
     name = "listen"
 
-    def run(self, param: list):
+    def run(self, param):
         from sgen.detect_change import listenChange
 
         if len(param) != 0:
@@ -53,14 +53,14 @@ class ListenChange(Command):
 class HttpServer(Command):
     name = "runserver"
 
-    def run(self, param: list):
-        if len(param) >= 1:
+    def run(self, param):
+        if len(param) > 1:
             raise TypeError(
                 f"Too many or too few arguments "
                 f"(got {len(param)}, excepted 0 to 1)"
             )
         if len(param) == 1:
-            runserver(param[0])
+            runserver(int(param[0]))
         else:
             runserver()
 
@@ -101,7 +101,7 @@ def createProjIgnoreTree(dir: str, filenames: list[str]) -> Iterable[str]:
 class CreateProject(Command):
     name = "create"
 
-    def run(self, param: list):
+    def run(self, param):
         from shutil import copytree
 
         if len(param) != 1:
