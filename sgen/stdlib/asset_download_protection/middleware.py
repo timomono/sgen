@@ -38,14 +38,28 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
 
         if self.except_debug and sgen_config.DEBUG:
             return
-        EXCLUDE_SUFFIXES = (".html", ".htm", ".css", ".js", ".svg")
+        EXCLUDE_SUFFIXES = (
+            ".html",
+            ".htm",
+            ".css",
+            ".js",
+            ".svg",
+            ".htaccess",
+            ".toml",
+            ".yaml",
+        )
+        EXCLUDE_FILENAMES = (
+            "sitemap.xml",
+            "robots.txt",
+            ".htaccess",
+        )
         with open(build_path / ".htaccess", "w") as f:
             f.write(HTACCESS_STR)
         for file in (
             path
             for path in build_path.glob("**/*")
             if path.suffix not in EXCLUDE_SUFFIXES
-            and path.name not in ("sitemap.xml", "robots.txt")
+            and path.name not in EXCLUDE_FILENAMES
             and path.is_file()
         ):
             temp_file_path = file.parent / (file.name + ".tmp")
