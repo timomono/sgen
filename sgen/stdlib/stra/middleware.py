@@ -62,6 +62,8 @@ class StraMiddleware(BaseMiddleware):
                 continue
             if file.suffix not in self.config.localize_file:
                 continue
+            if file.name == "404.html":
+                continue
             copy_to = temp_path / file.relative_to(buildPath)
             copy_to.parent.mkdir(exist_ok=True, parents=True)
             file.rename(copy_to)
