@@ -18,7 +18,11 @@ class XMLSitemapMiddleware(BaseMiddleware):
         urlset = ET.Element("urlset")
         if src_sitemap_path.exists():
             urlset = ET.parse(src_sitemap_path).getroot()
-        path_list: Iterable[Path] = build_path.glob("**/*.html")
+        path_list: Iterable[Path] = {
+            p
+            for p in build_path.glob("**/*.html")
+            if p.name not in ("404.html",)
+        }
         rel_path_list: list[Path] = list(
             map(lambda e: e.relative_to(build_path), path_list)
         )
