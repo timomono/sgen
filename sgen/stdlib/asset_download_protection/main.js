@@ -1,3 +1,4 @@
+// Minified version is in middleware.py
 // alert("called")
 
 async function decodeImages() {
@@ -10,14 +11,14 @@ async function decodeImages() {
             const blob = (await (await fetch(fromURL)).blob());
             const slicedBlob = blob.slice(1, blob.size, blob.type);
             let blobUrl = URL.createObjectURL(slicedBlob) // Remove \xff
-            blobUrl = blobUrl + "#" + fromURL.split("#").slice(-1)[0]
+            blobUrl = fromURL.includes("#") ? blobUrl + "#" + fromURL.split("#").slice(-1)[0] : blobUrl
+            element.addEventListener("load",
+                () => URL.revokeObjectURL(blobUrl))
             if (element.src !== undefined) {
                 element.src = blobUrl;
             } else if (element.getAttribute("xlink:href") !== undefined) {
                 element.setAttribute("xlink:href", blobUrl);
             }
-            element.addEventListener("load",
-                () => URL.revokeObjectURL(blobUrl))
         }
         for (const element of document.querySelectorAll("img")) {
             // Context menu
