@@ -10,12 +10,14 @@ js_symbol = {
 
 def obfScript(
     text: str,
-    iter: int = 1,
+    iter: int | None = None,
     base64: bool = True,
     uint8: bool = True,
     debugger: bool = True,
     format: bool = True,
 ) -> str:
+    if iter is None:
+        iter = randint(1, 5)
     res = text
     before = ""
     if debugger:

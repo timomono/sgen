@@ -125,8 +125,6 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
                     + ",".join(map(lambda v: '"' + v[1] + '"', sources))
                     + "]",
                     debugger=False,
-                    iter=0,
-                    format=False,
                 ),
             )
             filename = ".".join(file.name.split(".")[:-1])
