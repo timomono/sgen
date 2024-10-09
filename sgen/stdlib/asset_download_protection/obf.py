@@ -17,7 +17,7 @@ def obfScript(
     format: bool = True,
 ) -> str:
     if iter is None:
-        iter = randint(1, 5)
+        iter = randint(1, 2)
     res = text
     before = ""
     if debugger:
