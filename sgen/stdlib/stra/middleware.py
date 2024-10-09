@@ -1,5 +1,6 @@
 from pathlib import Path
 import shutil
+from typing import Iterable
 from sgen.components.override_decorator import override
 from urllib.parse import urljoin, urlparse
 from sgen.base_middleware import BaseMiddleware
@@ -28,10 +29,16 @@ class StraConfig:
         return sgen_config.SRC_DIR / "locale"
 
     def __init__(
-        self, default_lang: str = "en", localize_file: list[str] = [".html"]
+        self,
+        default_lang: str = "en",
+        localize_file: list[str] = [".html"],
+        files_to_copy_to_root: Iterable[Path] = {
+            Path("404.html"),
+        },
     ) -> None:
         self.default_lang = default_lang
         self.localize_file = localize_file
+        self.files_to_copy_to_root = files_to_copy_to_root
 
 
 class NoLangFoundException(Exception):
@@ -51,23 +58,24 @@ class StraMiddleware(BaseMiddleware):
         super().__init__()
 
     @override
-    def do(self, buildPath: Path):
-        temp_path = buildPath / "stra_temp"
+    def do(self, build_path: Path):
+        temp_path = build_path / "stra_temp"
         temp_path.mkdir()
         # shutil.move(buildPath, temp_path)
-        for file in list(buildPath.glob("**/*")):
+        for file in list(build_path.glob("**/*")):
             if file.is_dir():
                 continue
             if file.name == "stra_temp":
                 continue
             if file.suffix not in self.config.localize_file:
                 continue
-            if file.name == "404.html":
-                continue
-            copy_to = temp_path / file.relative_to(buildPath)
+            copy_to = temp_path / file.relative_to(build_path)
             copy_to.parent.mkdir(exist_ok=True, parents=True)
-            file.rename(copy_to)
-        for path in buildPath.iterdir():
+            # if file.name in ("404.html",):
+            shutil.copyfile(file, copy_to)
+            # else:
+            #     file.rename(copy_to)
+        for path in build_path.iterdir():
             if (
                 path.name != "stra_temp"
                 and file.suffix not in self.config.localize_file
@@ -86,14 +94,14 @@ class StraMiddleware(BaseMiddleware):
         localesStr = (
             "[" + ",".join(map(lambda s: f'"{s.upper()}"', locales)) + "]"
         )
-        with open(buildPath / "index.html", "w") as f:
+        with open(build_path / "index.html", "w") as f:
             f.write(localeRedirectIndex(localesStr, self.config))
 
         if locales == []:
             raise NoLangFoundException(self.config)
 
         for locale in locales:
-            buildLocaleDir = buildPath / locale
+            buildLocaleDir = build_path / locale
             if not buildLocaleDir.exists():
                 buildLocaleDir.mkdir()
 
@@ -145,12 +153,18 @@ class StraMiddleware(BaseMiddleware):
                 with open(out_filepath, "wb") as ff:
                     ff.write(body)
         shutil.rmtree(temp_path)
-        for directory in buildPath.glob("**/*"):
+        for directory in build_path.glob("**/*"):
             # Is empty directory?
             if directory.is_dir() and not any(
                 d for d in directory.glob("*") if d.is_file()
             ):
                 shutil.rmtree(directory)
+        for rel_file in self.config.files_to_copy_to_root:
+            file = build_path / self.config.default_lang / rel_file
+            copy_to = build_path / rel_file
+            if not file.exists():
+                continue
+            shutil.copyfile(file, copy_to)
 
 
 def change_to_localized_link(
@@ -276,8 +290,7 @@ def localeRedirectIndex(localesStr: str, config: StraConfig) -> str:
     )[0];
     console.log(lang);
     if (lang == undefined){{
-        location.href = {config.default_lang}"""  # type:ignore
-        f"""
+        location.href = "{config.default_lang}"
     }}
     location.href = "./" + lang.toLowerCase() + "/";
     </script>

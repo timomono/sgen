@@ -244,8 +244,7 @@ def localeRedirectIndex(localesStr: str, config: LocalizationConfig) -> str:
     )[0];
     console.log(lang);
     if (lang == undefined){{
-        location.href = {config.default_lang}"""  # type:ignore
-        f"""
+        location.href = "{config.default_lang}";
     }}
     location.href = "./" + lang.toLowerCase() + "/";
     </script>
