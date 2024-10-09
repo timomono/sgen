@@ -95,15 +95,52 @@ def minify(
         res = repl_css(r";}", "}", res)
     elif ext == ".js":
         # TODO: JS @license support
+        # TODO: Except string
+        # Remove comments
         res = "\n".join([s.split("//")[0] for s in re.split("\n|\r\n", res)])
         res = re.sub(r"/\*.*?\*/", "", res)
+        # First, update all line breaks to ;
+        res = re.sub(r"\n", ";", res)
+        # Remove whitespace
         res = re.sub(
-            r"( |\n|\r\n)*(?P<symbol>[\{\}])( |\n|\r\n)*",
+            r"( |\n|\r\n)*(?P<symbol>"
+            r"(?:\{|\}|\(|\)|=>|=|\+|\?|,|:))( |\n|\r\n)*",
             lambda m: m.group("symbol"),
             res,
         )
-        res = re.sub(r";}", r"}", res)
+        # raise ValueError(res)
         res = re.sub(r";(\n|\r\n| )*", r";", res)
+        # Remove ; that cause errors
+        res = re.sub(
+            r"(?P<symbol>\{|\(|=>|=|,|\?|:|\[)(;)*",
+            lambda m: m.group("symbol"),
+            res,
+        )
+        res = re.sub(
+            r"(;)*(?P<symbol>=>|=|,|\?|:|\)|\+(?!\+))",
+            lambda m: m.group("symbol"),
+            res,
+        )
+        res = re.sub(
+            r"^;",
+            "",
+            res,
+        )
+        # Remove unnecessary bracket
+        # res = re.sub(
+        #     r"(?P<prefix>(?:if|for)(?: |\r\n|\n)*\([\s\S]*?\)"
+        #     r"(?: |\n|\r\n)*?)\{(?P<body>[\s\S]*?)\}",
+        #     lambda m: (
+        #         m.group("prefix") + m.group("body")
+        #         if m.group("body").
+        #         else m.group("prefix") + "{" + m.group("body") + "}"
+        #     ),
+        #     res,
+        # )
+        # Remove unnecessary semi-colon
+        res = re.sub(r";+", r";", res)
+        res = re.sub(r";}", r"}", res)
+        # res = re.sub(r";(\n|\r\n| )*", r";", res)
         if JSRemoveBr:
             res = re.sub(r"(\n|\r\n)", "", res)
     elif ext == ".svg":
@@ -111,3 +148,16 @@ def minify(
     else:
         res = res
     return res
+
+
+if __name__ == "__main__":
+    print(
+        minify(
+            """+[] ? function(){
+                console.log("Hello.");
+            } :
+            function (){};
+            alert("hey");++[+[]][+[]]""",
+            ".js",
+        )
+    )
