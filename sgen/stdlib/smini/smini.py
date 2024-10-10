@@ -1,3 +1,4 @@
+import inspect
 import re
 from typing import Callable
 
@@ -25,7 +26,7 @@ def minify(
                 r"(?P<css_suffix></style>)|"
                 r"(?P<js_prefix><script[\s\S]*?>)"
                 r"(?P<js_body>[\s\S]*?)"
-                r"(?P<js_suffix></script>)|"
+                r"(?P<js_suffix></script *>)|"
                 r"(?P<r_body>" + regexp + r")",
                 lambda m: (
                     (replace_str(m) if callable(replace_str) else replace_str)
@@ -41,11 +42,11 @@ def minify(
                         if m.group("css_body")
                         else (
                             re.sub(r"( |\n|\r\n)+", " ", m.group("js_prefix"))
-                            + re.sub(
-                                r"^(?: |\n|\r\n)*([\s\S]*)(?: |\n|\r\n)*$",
-                                r"\1",
-                                minify(m.group("js_body"), ".js"),
-                            )
+                            # + re.sub(
+                            #     r"^(?: |\n|\r\n)*([\s\S]*)(?: |\n|\r\n)*$",
+                            #     r"\1",
+                            + minify(m.group("js_body"), ".js")
+                            # )
                             + m.group("js_suffix")
                         )
                     )
@@ -101,38 +102,58 @@ def minify(
         #    console.log("true")
         # else
         #    console.log("false")
-        # Remove comments
-        res = "\n".join([s.split("//")[0] for s in re.split("\n|\r\n", res)])
-        res = re.sub(r"/\*.*?\*/", "", res)
+
+        def repl_js(
+            regexp: str,
+            replace_str: str | Callable[[re.Match], str],
+            from_: str,
+        ) -> str:
+            return re.sub(
+                (
+                    r'(?P<string>["\'].*?["\']|`[\s\S]*?`)|'
+                    r"(?P<r_body>" + regexp + r")"
+                ),
+                lambda m: (
+                    (replace_str(m) if callable(replace_str) else replace_str)
+                    if m.group("r_body")
+                    else m.group("string")
+                ),
+                from_,
+            )
+
+        # Delete comments
+        # res = "\n".join([s.split("//")[0] for s in re.split("\n|\r\n", res)])
+        res = repl_js(r"//.*?($|;)", "", res)
+        res = repl_js(r"/\*.*?\*/", "", res)
         # First, update all line breaks to ;
-        res = re.sub(r"\n", ";", res)
-        # Remove whitespace
-        res = re.sub(
+        res = repl_js(r"\r\n|\n", ";", res)
+        # Delete whitespace
+        res = repl_js(
             r"( |\n|\r\n)*(?P<symbol>"
             r"(?:\{|\}|\(|\)|=>|=|\+|\?|,|:))( |\n|\r\n)*",
             lambda m: m.group("symbol"),
             res,
         )
         # raise ValueError(res)
-        res = re.sub(r";(\n|\r\n| )*", r";", res)
-        # Remove ; that cause errors
-        res = re.sub(
+        res = repl_js(r";(\n|\r\n| )*", r";", res)
+        # Delete ; that cause errors
+        res = repl_js(
             r"(?P<symbol>\{|\(|=>|=|,|\?|:|\[|\.)(;)*",
             lambda m: m.group("symbol"),
             res,
         )
-        res = re.sub(
+        res = repl_js(
             r"(;)*(?P<symbol>=>|=|,|\?|:|\)|\+(?!\+)|\.)",
             lambda m: m.group("symbol"),
             res,
         )
-        res = re.sub(
+        res = repl_js(
             r"^;",
             "",
             res,
         )
         # Remove unnecessary bracket
-        # res = re.sub(
+        # res = repl_js(
         #     r"(?P<prefix>(?:if|for)(?: |\r\n|\n)*\([\s\S]*?\)"
         #     r"(?: |\n|\r\n)*?)\{(?P<body>[\s\S]*?)\}",
         #     lambda m: (
@@ -143,11 +164,11 @@ def minify(
         #     res,
         # )
         # Remove unnecessary semi-colon
-        res = re.sub(r";+", r";", res)
-        res = re.sub(r";}", r"}", res)
-        # res = re.sub(r";(\n|\r\n| )*", r";", res)
+        res = repl_js(r";+", r";", res)
+        res = repl_js(r";}", r"}", res)
+        # res = repl_js(r";(\n|\r\n| )*", r";", res)
         if JSRemoveBr:
-            res = re.sub(r"(\n|\r\n)", "", res)
+            res = repl_js(r"(\n|\r\n)", "", res)
     elif ext == ".svg":
         res = svg_minify(res)
     else:
