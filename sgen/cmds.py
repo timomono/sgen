@@ -53,37 +53,23 @@ class ListenChange(Command):
 class HttpServer(Command):
     name = "runserver"
 
-    def run(self, param):
+    def run(self, param: list[str]):
+        from sgen.server import runserver
+
         if len(param) > 1:
             raise TypeError(
                 f"Too many or too few arguments "
                 f"(got {len(param)}, excepted 0 to 1)"
             )
         if len(param) == 1:
-            runserver(int(param[0]))
+            if ":" in param[0]:
+                host, _port_str = param[0].split(":")
+                port = int(_port_str)
+            else:
+                host, port = "localhost", int(param[0])
+            runserver(host, port)
         else:
             runserver()
-
-
-def runserver(port: int = 8282):
-    import http.server
-    import socketserver
-    from sgen.get_config import sgen_config
-
-    class Handler(http.server.SimpleHTTPRequestHandler):
-        def __init__(self, *args, **kwargs):
-            super().__init__(
-                *args, directory=str(sgen_config.BASE_DIR / "build"), **kwargs
-            )
-
-    with socketserver.TCPServer(("", port), Handler) as httpd:
-        logger.warning(
-            f"serving at port {port} http://localhost:{port}",
-        )
-        try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            return
 
 
 def createProjIgnoreTree(dir: str, filenames: list[str]) -> Iterable[str]:

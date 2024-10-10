@@ -53,6 +53,8 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
             "sitemap.xml",
             "robots.txt",
             ".htaccess",
+            "_redirects",
+            "_headers",
         )
         with open(build_path / ".htaccess", "w") as f:
             f.write(HTACCESS_STR)
