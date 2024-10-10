@@ -1,7 +1,7 @@
 from pathlib import Path
 import shutil
 from typing import Iterable
-from sgen.components.override_decorator import override
+from sgen.components.override_decorator import OverrideStrict, override
 from urllib.parse import urljoin, urlparse
 from sgen.base_middleware import BaseMiddleware
 from sgen.stdlib.smini.smini import minify
@@ -13,7 +13,7 @@ from sgen.stdlib.stra.file_parser import Stra
 logger = getLogger(__name__)
 
 
-class StraConfig:
+class StraConfig(OverrideStrict):
     """Stra localization configuration."""
 
     @property
@@ -28,6 +28,7 @@ class StraConfig:
 
         return sgen_config.SRC_DIR / "locale"
 
+    @override
     def __init__(
         self,
         default_lang: str = "en",
@@ -72,9 +73,9 @@ class StraMiddleware(BaseMiddleware):
             copy_to = temp_path / file.relative_to(build_path)
             copy_to.parent.mkdir(exist_ok=True, parents=True)
             # if file.name in ("404.html",):
-            shutil.copyfile(file, copy_to)
+            # shutil.copyfile(file, copy_to)
             # else:
-            #     file.rename(copy_to)
+            file.rename(copy_to)
         for path in build_path.iterdir():
             if (
                 path.name != "stra_temp"

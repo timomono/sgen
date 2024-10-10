@@ -3,8 +3,6 @@ import math
 import os
 from pathlib import Path
 
-# from random import randint
-from random import randint
 from time import sleep
 from typing import Iterable
 
@@ -12,6 +10,7 @@ from logging import getLogger, Handler, INFO, root
 
 from sgen.build import build  # type:ignore
 import shutil
+from sgen.components.override_decorator import OverrideStrict
 from sgen.get_config import sgen_config
 
 logger = getLogger(__name__)
@@ -111,7 +110,7 @@ class ConsoleColor(Enum):
     YELLOW = "\033[33m"
 
 
-class ConsoleOutput:
+class ConsoleOutput(OverrideStrict):
     color: ConsoleColor | None
     body: str
 
