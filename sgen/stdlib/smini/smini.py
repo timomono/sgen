@@ -96,6 +96,11 @@ def minify(
     elif ext == ".js":
         # TODO: JS @license support
         # TODO: Except string
+        # TODO: Not working:
+        # if(true)
+        #    console.log("true")
+        # else
+        #    console.log("false")
         # Remove comments
         res = "\n".join([s.split("//")[0] for s in re.split("\n|\r\n", res)])
         res = re.sub(r"/\*.*?\*/", "", res)
@@ -112,12 +117,12 @@ def minify(
         res = re.sub(r";(\n|\r\n| )*", r";", res)
         # Remove ; that cause errors
         res = re.sub(
-            r"(?P<symbol>\{|\(|=>|=|,|\?|:|\[)(;)*",
+            r"(?P<symbol>\{|\(|=>|=|,|\?|:|\[|\.)(;)*",
             lambda m: m.group("symbol"),
             res,
         )
         res = re.sub(
-            r"(;)*(?P<symbol>=>|=|,|\?|:|\)|\+(?!\+))",
+            r"(;)*(?P<symbol>=>|=|,|\?|:|\)|\+(?!\+)|\.)",
             lambda m: m.group("symbol"),
             res,
         )
