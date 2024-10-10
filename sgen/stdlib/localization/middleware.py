@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 import shutil
-from sgen.components.override_decorator import override
+from sgen.components.override_decorator import OverrideStrict, override
 from urllib.parse import urljoin, urlparse
 from sgen.base_middleware import BaseMiddleware
 from sgen.components.deprecated_decorator import deprecated
@@ -12,7 +12,7 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-class LocalizationConfig:
+class LocalizationConfig(OverrideStrict):
     """Localization configuration."""
 
     @property

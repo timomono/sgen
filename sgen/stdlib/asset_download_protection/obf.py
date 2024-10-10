@@ -46,9 +46,7 @@ def toBase64(text: str) -> str:
 
 def toUint8(text: str) -> str:
     js_eval = js_symbol["eval"]
-    script = (
-        f"window[{js_eval}](" "(new TextDecoder()).decode(new Uint8Array(["
-    )
+    script = f"window[{js_eval}](new TextDecoder().decode(new Uint8Array(["
     for char in text.encode():
         obf_str = baseNumberToStr(char)
         script += obf_str + ","

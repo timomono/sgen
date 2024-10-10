@@ -1,10 +1,10 @@
 from abc import abstractmethod
 from pathlib import Path
-from sgen.components.override_decorator import override
+from sgen.components.override_decorator import OverrideStrict, override
 from sgen.base_middleware import BaseMiddleware
 
 
-class BaseCheck:
+class BaseCheck(OverrideStrict):
     @abstractmethod
     @property
     def name(self) -> str:

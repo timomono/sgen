@@ -3,12 +3,14 @@ from pathlib import Path
 import re
 from typing import Generator
 
+from sgen.components.override_decorator import OverrideStrict, override
+
 
 class StraParseError(Exception):
     pass
 
 
-class Stra:
+class Stra(OverrideStrict):
     """
     > Hello world
     こんにちは世界
@@ -16,6 +18,7 @@ class Stra:
     私のサイトへようこそ！
     """
 
+    @override
     def __init__(self, value: dict | OrderedDict) -> None:
         self._value = OrderedDict(value)
 
@@ -107,6 +110,7 @@ class Stra:
     def __iter__(self) -> Generator[tuple[str, str], None, None]:
         yield from self._value.items()
 
+    @override
     def __str__(self) -> str:
         string = ""
         for key, translated_text in self:
