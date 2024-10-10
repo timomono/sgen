@@ -3,6 +3,7 @@ import re
 from urllib.parse import urlparse
 from sgen.base_middleware import BaseMiddleware
 from sgen.stdlib.asset_download_protection.obf import obfScript
+from sgen.stdlib.asset_download_protection.random_str import random_path
 
 # <Files ~ "^(?!.*((\.(html|htm))|/)$).*">
 
@@ -127,8 +128,7 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
                     debugger=False,
                 ),
             )
-            filename = ".".join(file.name.split(".")[:-1])
-            decode_img_js: Path = file.parent / (filename + "-decode-img.js")
+            decode_img_js: Path = random_path(file.parent, ".js")
             with open(decode_img_js, "w") as f:
                 f.write(list_string)
             result = re.sub(
