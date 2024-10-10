@@ -8,16 +8,22 @@ js_symbol = {
 }
 
 
+def randBool():
+    return randint(0, 1) == 0
+
+
 def obfScript(
     text: str,
     iter: int | None = None,
-    base64: bool = True,
-    uint8: bool = True,
+    base64: bool | None = None,
+    uint8: bool | None = None,
     debugger: bool = True,
     format: bool = True,
 ) -> str:
-    if iter is None:
-        iter = randint(1, 2)
+    iter = iter or randint(1, 2)
+    base64 = base64 or randBool()
+    uint8 = uint8 or randBool()
+
     res = text
     before = ""
     if debugger:
