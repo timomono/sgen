@@ -27,7 +27,13 @@ def obfScript(
     res = text
     before = ""
     if debugger:
-        before += "setInterval(()=>{debugger},0x64);"
+        before += (
+            "setInterval(()=>(function(){return "
+            + baseNumberToStr(randint(-100, 100))
+            + "}['constructor'](("
+            + obfScript('"d"+"ebugger"', debugger=False, iter=1)
+            + "))['apply']('stateObject')),0x64);"
+        )
     if format:
         before += f'const c=()=>c.toString()[{js_symbol["includes"]}]({js_symbol["space"]})?(()=>{{while(++[+[]][+[]])alert("ERR")}})():"";c();'  # noqa:E501
     for i in range(iter):
@@ -77,7 +83,6 @@ def baseNumberToStr(integer: int) -> str:
 if __name__ == "__main__":
     print(
         obfScript(
-            'alert("hello world")',
-            base64=False,
+            "",
         )
     )
