@@ -27,21 +27,34 @@ def development_server(env: WSGIEnvironment, start_response: StartResponse):
         content_type = guess_type(path)[0] or "text/plain"
     else:
         # Find 404.html
-        find_404_path = path.parent
-        while True:
-            if find_404_path in root.parents:
+        for parent in path.parents:
+            if parent < root:
                 # Default 404
                 body = b"404 Not Found"
                 status = "404 Not Found"
                 content_type = "text/plain"
                 break
-            if (find_404_path / "404.html").exists():
-                path = find_404_path / "404.html"
-                status = "200 OK"
+            if (parent / "404.html").exists():
+                path = parent / "404.html"
+                status = "404 Not Found"
                 body = path.read_bytes()
                 content_type = guess_type(path)[0] or "text/plain"
                 break
-            find_404_path = path.parent
+        # find_404_path = path.parent
+        # while True:
+        #     if find_404_path in root.parents:
+        #         # Default 404
+        #         body = b"404 Not Found"
+        #         status = "404 Not Found"
+        #         content_type = "text/plain"
+        #         break
+        #     if (find_404_path / "404.html").exists():
+        #         path = find_404_path / "404.html"
+        #         status = "200 OK"
+        #         body = path.read_bytes()
+        #         content_type = guess_type(path)[0] or "text/plain"
+        #         break
+        #     find_404_path = path.parent
 
     headers = [
         ("Content-Type", content_type),
