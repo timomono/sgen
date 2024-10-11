@@ -55,6 +55,8 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
             ".htaccess",
             "_redirects",
             "_headers",
+            "favicon.ico",
+            "favicon.png",
         )
         with open(build_path / ".htaccess", "w") as f:
             f.write(HTACCESS_STR)
@@ -127,7 +129,6 @@ class AssetDownloadProtectionMiddleware(BaseMiddleware):
                     "["
                     + ",".join(map(lambda v: '"' + v[1] + '"', sources))
                     + "]",
-                    debugger=False,
                 ),
             )
             decode_img_js: Path = random_path(file.parent, ".js")
