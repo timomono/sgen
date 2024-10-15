@@ -2,7 +2,7 @@ from abc import ABC
 from pathlib import Path
 from sgen.components.override_decorator import override
 from sgen.base_middleware import BaseMiddleware
-from sgen.stdlib.smini.smini import MINIFY_EXTS, minify
+from sgen.stdlib.smini.minify import MINIFY_EXTS, minify
 
 
 class BaseSminiConfig(ABC):
@@ -29,10 +29,8 @@ class SminiMiddleware(BaseMiddleware):
     @override
     def __init__(
         self,
-        js_delete_br=False,
         except_debug=True,
     ) -> None:
-        self.js_delete_br = js_delete_br
         self.except_debug = except_debug
         super().__init__()
 
@@ -49,7 +47,6 @@ class SminiMiddleware(BaseMiddleware):
                 result = minify(
                     f.read(),
                     filePath.suffix,
-                    self.js_delete_br,
                 )
             with open(filePath, "w") as f:
                 f.write(result)

@@ -4,7 +4,7 @@ from typing import Iterable
 from sgen.components.override_decorator import OverrideStrict, override
 from urllib.parse import urljoin, urlparse
 from sgen.base_middleware import BaseMiddleware
-from sgen.stdlib.smini.smini import minify
+from sgen.stdlib.smini.minify import minify
 import re
 from logging import getLogger
 
@@ -299,5 +299,4 @@ def localeRedirectIndex(localesStr: str, config: StraConfig) -> str:
 </html>
     """,
         ext=".html",
-        JSRemoveBr=True,
     )

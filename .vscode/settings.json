@@ -6,5 +6,11 @@
         "smini",
         "Stra",
         "xmlsitemap"
-    ]
+    ],
+    "black-formatter.args": [
+        "--line-length=79"
+    ],
+    "mypy-type-checker.args": [
+        "--implicit-reexport"
+    ],
 }
