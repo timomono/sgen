@@ -9,7 +9,6 @@ MINIFY_EXTS = {".html", ".css", ".js", ".svg"}
 def minify(
     text: str,
     ext: str,
-    JSRemoveBr: bool = False,
 ) -> str:
     res = text
     if ext == ".html":
@@ -137,7 +136,7 @@ def minify(
         res = repl_js(r";(\n|\r\n| )*", r";", res)
         # Delete ; that cause errors
         res = repl_js(
-            r"(?P<symbol>\{|\(|=>|=|,|\?|:|\[|\.)(;)*",
+            r"(?P<symbol>\{|\(|=>|=|,|\?|:|\[|\.|&)(;)*",
             lambda m: m.group("symbol"),
             res,
         )
@@ -166,8 +165,6 @@ def minify(
         res = repl_js(r";+", r";", res)
         res = repl_js(r";}", r"}", res)
         # res = repl_js(r";(\n|\r\n| )*", r";", res)
-        if JSRemoveBr:
-            res = repl_js(r"(\n|\r\n)", "", res)
     elif ext == ".svg":
         res = svg_minify(res)
     else:

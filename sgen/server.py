@@ -23,8 +23,17 @@ def development_server(env: WSGIEnvironment, start_response: StartResponse):
         if path.is_dir():
             path = path / "index.html"
         status = "200 OK"
-        body = path.read_bytes()
         content_type = guess_type(path)[0] or "text/plain"
+
+        headers = [
+            ("Content-Type", content_type),
+            ("Content-Length", str(path.stat().st_size)),
+            ("Server", "Sgen development server"),
+        ]
+        start_response(status, headers)
+        with open(path, "rb") as f:
+            while byte := f.read(5 * 1024):
+                yield byte
     else:
         # Find 404.html
         for parent in path.parents:
@@ -33,13 +42,30 @@ def development_server(env: WSGIEnvironment, start_response: StartResponse):
                 body = b"404 Not Found"
                 status = "404 Not Found"
                 content_type = "text/plain"
-                break
+
+                headers = [
+                    ("Content-Type", content_type),
+                    ("Content-Length", str(len(body))),
+                    ("Server", "Sgen development server"),
+                ]
+                start_response(status, headers)
+                return [body]
+
             if (parent / "404.html").exists():
                 path = parent / "404.html"
                 status = "404 Not Found"
                 body = path.read_bytes()
                 content_type = guess_type(path)[0] or "text/plain"
-                break
+
+                headers = [
+                    ("Content-Type", content_type),
+                    ("Content-Length", str(path.stat().st_size)),
+                    ("Server", "Sgen development server"),
+                ]
+                start_response(status, headers)
+                with open(path, "rb") as f:
+                    while byte := f.read(5 * 1024):
+                        yield byte
         # find_404_path = path.parent
         # while True:
         #     if find_404_path in root.parents:
@@ -55,15 +81,6 @@ def development_server(env: WSGIEnvironment, start_response: StartResponse):
         #         content_type = guess_type(path)[0] or "text/plain"
         #         break
         #     find_404_path = path.parent
-
-    headers = [
-        ("Content-Type", content_type),
-        ("Content-Length", str(len(body))),
-        ("Server", "Sgen development server"),
-    ]
-
-    start_response(status, headers)
-    return [body]
 
 
 def runserver(host: str = "localhost", port: int = 8282):
