@@ -1,4 +1,5 @@
 # S-Sen
+This is a simple yet powerful static site generator that is easy to migrate from html.
 ## Environments
 Python 3.11.x/3.12.x (Recommended)
 ## Get started
