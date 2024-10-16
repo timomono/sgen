@@ -6,7 +6,7 @@ Python 3.11.x/3.12.x (Recommended)
 ### Install
 1. Make virtual env: `python3 -m venv env`
 2. Activate virtual env: `source env/bin/activate` for linux/macos or `.\env\Scripts\activate` for windows
-3. Run `git+https://github.com/timomono/sgen.git`
+3. Run `(python3 -m )pip install git+https://github.com/timomono/sgen.git`
 
 ### Create project
 ```shell
