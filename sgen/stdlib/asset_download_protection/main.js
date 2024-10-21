@@ -34,9 +34,13 @@ async function decodeImages() {
             dummy_img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAAtJREFUGFdjYAACAAAFAAGq1chRAAAAAElFTkSuQmCC";
 
             const div_element = document.createElement("div");
+            // Default
             // Object.assign(div_element.style, {...element.style})
             for (const property of element.style) {
                 div_element.style[property] = element.style[property];
+            }
+            for (const cls of element.classList) {
+                div_element.classList.add(cls)
             }
             // div_element.style.display = element.style.display;
             // div_element.style.width = element.style.width;
