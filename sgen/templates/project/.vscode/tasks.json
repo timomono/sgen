@@ -22,8 +22,10 @@
         },
         {
             "type": "shell",
-            "command": "sgen",
+            "command": "${command:python.interpreterPath}",
             "args": [
+                "-m",
+                "sgen",
                 "listen"
             ],
             "group": "build",
@@ -36,8 +38,10 @@
         },
         {
             "type": "shell",
-            "command": "sgen",
+            "command": "${command:python.interpreterPath}",
             "args": [
+                "-m",
+                "sgen",
                 "runserver"
             ],
             "group": "build",
@@ -47,6 +51,6 @@
                 "group": "watch",
                 "reveal": "never"
             }
-        },
+        }
     ]
 }
