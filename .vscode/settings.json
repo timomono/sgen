@@ -4,6 +4,7 @@
         "markupsafe",
         "sgen",
         "smini",
+        "Sobf",
         "Stra",
         "xmlsitemap"
     ],
@@ -13,4 +14,7 @@
     "mypy-type-checker.args": [
         "--implicit-reexport"
     ],
+    "flake8.args": [
+        "--ignore=E203,W503"
+    ]
 }

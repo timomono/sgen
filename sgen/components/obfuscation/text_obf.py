@@ -1,7 +1,35 @@
 from base64 import b64encode
 from random import randint
 
-from sgen.components.random_str import random_expression_to_str
+from sgen.components.random_str import (
+    random_base_number_to_str,
+    random_expression_to_str,
+    random_join_to_str,
+)
+
+
+class JsSymbols:
+    @staticmethod
+    def eval():
+        rand = randint(0, 5)
+        if rand == 0:
+            return "eval"
+        else:
+            return "eval"
+
+    @staticmethod
+    def constructor():
+        rand = randint(0, 5)
+        if rand == 0:
+            return (
+                f"({random_base_number_to_str(338403347140888)}).toString(31)"
+            )
+        elif rand == 1:
+            return random_join_to_str(
+                r"\u0063\u006f\u006e\u0073\u0074"
+                r"\u0072\u0075\u0063\u0074\u006f\u0072"
+            )
+
 
 js_symbol = {
     "eval": r'"\x65"[+[]][[+[]][+[]]]+["\x6e\x63\x6f\x64\x65"[+[]]&&"\x76"+[[[]==[]]+[]][+[]][++[+[]][+[]]]+"\x6c"][+[]]||"\x26\x52"',  # noqa:E501
@@ -37,7 +65,7 @@ def obfScript(
             + "))['apply']('stateObject')),0x64);"
         )
     if format:
-        before += f'const c=()=>c.toString()[{js_symbol["includes"]}]({js_symbol["space"]})?(()=>{{while(++[+[]][+[]])alert("\\x45"+"\\x52"+"\\x52")}})():"";c();'  # noqa:E501
+        before += f'const c=()=>c.toString()[{js_symbol["includes"]}]({js_symbol["space"]})?(()=>{{while(++[+[]][+[]])}})():"";c();'  # noqa:E501
     for i in range(iter):
         if uint8:
             res = toUint8(res)
