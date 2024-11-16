@@ -2,6 +2,7 @@ from pathlib import Path
 from os.path import relpath
 from random import choice, randint
 from string import ascii_letters, digits, ascii_lowercase
+from typing import Sequence
 
 
 def random_path_to_url(
@@ -53,14 +54,15 @@ def random_folder_path(base_path: Path, max_depth: int = 3) -> Path:
 
 def random_text() -> str:
     method = randint(0, 3)
-    if method == 0:
-        return _random_string()
-    elif method == 1:
-        return random_number()
-    elif method == 2:
-        return _random_lowercase()
-    else:
-        return _random_sentence()
+    match method:
+        case 0:
+            return _random_string()
+        case 1:
+            return random_number()
+        case 2:
+            return _random_lowercase()
+        case _:
+            return _random_sentence()
 
 
 def _random_sentence() -> str:
@@ -104,43 +106,56 @@ def random_number(length: int | None = None) -> str:
 
 
 def random_base_number_to_str(integer: int) -> str:
-    rand = randint(0, 8)
     obf_str = ""
-    if rand == 0:
-        obf_str = str(integer)
-    elif rand == 1:
-        obf_str = bin(integer)
-    elif rand == 2:
-        obf_str = oct(integer)
-    else:
-        obf_str = hex(integer)
+    match randint(0, 8):
+        case 0:
+            obf_str = str(integer)
+        case 1:
+            obf_str = bin(integer)
+        case 2:
+            obf_str = oct(integer)
+        case _:
+            obf_str = hex(integer)
     return obf_str
 
 
 def random_expression_to_str(integer: int, random_base_number=True) -> str:
-    rand = randint(0, 8)
 
     def number(n: int) -> str:
         return random_base_number_to_str(n) if random_base_number else str(n)
 
-    if rand == 0:
-        while True:
-            number_to_divide = randint(1, 10)
-            if (integer / number_to_divide).is_integer():
-                break
-        return (
-            str(number(int(integer / number_to_divide)))
-            + "*"
-            + str(number(number_to_divide))
-        )
-    elif rand == 1:
-        num_to_sub = randint(0, integer)
-        return f"{number(integer+num_to_sub)}-{number(num_to_sub)}"
-    elif rand == 2:
-        number_to_add = randint(0, integer)
-        return f"{number(integer-number_to_add)}+{number(number_to_add)}"
-    else:
-        return number(integer)
+    match randint(0, 8):
+        case 0:
+            while True:
+                number_to_divide = randint(1, 10)
+                if (integer / number_to_divide).is_integer():
+                    break
+            return (
+                str(number(int(integer / number_to_divide)))
+                + "*"
+                + str(number(number_to_divide))
+            )
+        case 1:
+            num_to_sub = randint(0, integer)
+            return f"{number(integer + num_to_sub)}-{number(num_to_sub)}"
+        case 2:
+            number_to_add = randint(0, integer)
+            return f"{number(integer - number_to_add)}+{number(number_to_add)}"
+        case _:
+            return number(integer)
+
+
+def random_join_to_str(string: Sequence[str]) -> str:
+    rand = randint(0, len(string))
+    return (
+        '"'
+        + "".join(string[:rand])
+        + '"'
+        + "+"
+        + '"'
+        + "".join(string[rand:])
+        + '"'
+    )
 
 
 if __name__ == "__main__":
