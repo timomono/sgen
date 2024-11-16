@@ -2,7 +2,7 @@ from abc import ABC
 from pathlib import Path
 from sgen.components.override_decorator import override
 from sgen.base_middleware import BaseMiddleware
-from sgen.stdlib.smini.minify import MINIFY_EXTS, minify
+from sgen.components.minify import MINIFY_EXTS, minify
 
 
 class BaseSminiConfig(ABC):

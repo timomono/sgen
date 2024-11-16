@@ -4,7 +4,7 @@ from typing import Iterable
 from sgen.components.override_decorator import OverrideStrict, override
 from urllib.parse import urljoin, urlparse
 from sgen.base_middleware import BaseMiddleware
-from sgen.stdlib.smini.minify import minify
+from sgen.components.minify import minify
 import re
 from logging import getLogger
 

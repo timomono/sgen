@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from urllib.parse import urljoin
 from sgen.base_middleware import BaseMiddleware
 from sgen.stdlib.asset_download_protection.image_division import divide_image
-from sgen.stdlib.asset_download_protection.obf import obfScript
+from sgen.components.obfuscation.text_obf import obfScript
 from sgen.components.random_str import (
     random_path,
     random_path_to_url,
