@@ -30,7 +30,10 @@ class SobfMiddleware(BaseMiddleware):
             return
         context: ObfuscateContext = ObfuscateContext()
         for file in build_path.glob("**/*"):
-            if file.stat().st_size > self.max_size:
+            if file.stat().st_size > self.max_size and file.suffix in [
+                ".js",
+                ".html",
+            ]:
                 logger.warning(
                     f"Skipping too big file obfuscation "
                     f"({file.resolve()}, {file.stat().st_size}byte(s))."
@@ -95,12 +98,15 @@ def obfuscate_js_in_html(
         )
 
     body = re.sub(
-        # r"(?P<prefix>on[a-zA-Z]*?\s*=\s*\"?)"
-        r"(?P<prefix> on[a-zA-Z]+\s*=\s*([\"\'])?)"
-        # r"(?P<body>[\s\S]*?)"
-        r"(?P<body>[^\2]*?"
-        # r"(?P<suffix>\"?)",
-        r"(?P<suffix>\2)|[^ \"']+)",
+        # # r"(?P<prefix>on[a-zA-Z]*?\s*=\s*\"?)"
+        # r"(?P<prefix> on[a-zA-Z]+\s*=\s*([\"\'])?)"
+        # # r"(?P<body>[\s\S]*?)"
+        # r"(?P<body>[^\2]*?"
+        # # r"(?P<suffix>\"?)",
+        # r"(?P<suffix>\2)|[^ \"']+)",
+        r"(?P<prefix> on[a-zA-Z]+\s*=\s*([\"\']?))"
+        r"(?P<body>(?!\2>)*|[^ \"'>]+)"
+        r"(?P<suffix>\2)",
         repl_attribute,
         body,
     )
