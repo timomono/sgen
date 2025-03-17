@@ -21,7 +21,7 @@ class SelfXSSWarn(BaseMiddleware):
             body = re.sub(
                 rb"(<head[\s\S]*?>)",
                 rb"\1<script>"
-                + rb"""console.log("""
+                + rb"""Function('console.log("""
                 + rb""""%c"""
                 + toTrans(rb"""Do not enter any code you do not understand""")
                 + rb"""%c"""
@@ -31,7 +31,7 @@ class SelfXSSWarn(BaseMiddleware):
                 )
                 + rb'",'
                 + rb""""color: yellow;background-color:red;font-size:3rem","""
-                + rb""""font-size:2rem;font-weight:bold");"""
+                + rb""""font-size:2rem;font-weight:bold");')()"""
                 + rb"""</script>""",
                 body,
             )
