@@ -1,5 +1,6 @@
 import base64
-from time import sleep
+
+# from time import sleep
 import unittest
 
 from sgen.components.obfuscation.obf import obfuscate_js
@@ -17,6 +18,7 @@ script = """
 function sayHello(param) {
     const message = "Hello, World!";
     console.log(message) // No semi-colon
+    console.log('"Hello, World!"')
     console.log('Console hello world message');
     if (message == param){
         console.log(`message
@@ -25,8 +27,12 @@ msg`)
     const animal = {
         "cat": "Cat",
         "dog": "Dog",
+        "panda": "Panda",
     }
     console.log(animal.cat);
+    console.log(`animal["dog"]: ${animal["dog"]}`)
+    console.log(`animal["cat"]: ${animal["cat"]}
+animal["panda"]: ${animal["panda"]}`)
 }
 sayHello('Hello, World!');
 """
@@ -34,27 +40,52 @@ sayHello('Hello, World!');
 
 class SobfTest(unittest.TestCase):
     def test_script(self):
-        for i in range(50):
-            obfuscated_script = obfuscate_js(script, seed=i, is_minify=False)
-            self.assertNotEqual(
-                obfuscated_script,
-                script,
+        for seed in range(50):
+            last_obfuscated_script = obfuscate_js(
+                script, seed=seed, is_minify=False
             )
+            for _ in range(2):
+                obfuscated_script = obfuscate_js(
+                    script, seed=seed, is_minify=False
+                )
+                self.assertEqual(
+                    last_obfuscated_script,
+                    obfuscated_script,
+                    f"Same seed, different output "
+                    f"Seed: {seed},{last_obfuscated_script},"
+                    f"{obfuscated_script}",
+                )
+                self.assertNotEqual(
+                    obfuscated_script,
+                    script,
+                )
 
-            result = subprocess.run(
-                ("node", "-e", obfuscated_script), stdout=subprocess.PIPE
-            )
-            self.assertEqual(
-                result.stdout.decode("utf-8"),
-                "Hello, World!\nConsole hello world message\n"
-                "message\nmsg\nCat\n",
-                f"Seed: {i}, {obfuscated_script}",
-            )
+                result = subprocess.run(
+                    ("node", "-e", obfuscated_script), stdout=subprocess.PIPE
+                )
+                print(
+                    f'===node -e ...===\n{result.stdout.decode("utf-8")}======'
+                )
+                self.assertEqual(
+                    result.stdout.decode("utf-8"),
+                    "Hello, World!\n"
+                    "Console hello world message\n"
+                    "message\n"
+                    "msg\n"
+                    "Cat\n"
+                    'animal["dog"]: Dog\n'
+                    'animal["cat"]: Cat\n'
+                    'animal["panda"]: Panda\n',
+                    f"Seed: {seed}, {obfuscated_script}",
+                )
+                self.assertNotEqual(
+                    result.stderr, "", f"Seed: {seed}, {obfuscated_script}"
+                )
 
     def test_html(self):
         options = webdriver.ChromeOptions()
         options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
-        # options.add_argument("--headless")
+        options.add_argument("--headless")
 
         driver = webdriver.Chrome(
             options=options,
@@ -106,7 +137,7 @@ class SobfTest(unittest.TestCase):
             logs: list[dict[str, str]] = driver.get_log("browser")
 
             errors = list(filter(lambda log: log["level"] == "SEVERE", logs))
-            sleep(100)
+            # sleep(100)
             if errors != []:
                 raise Exception(errors, f"Seed: {i}, {obfuscated_script}")
 
