@@ -10,7 +10,7 @@ def repl_js(
 ) -> str:
     return re.sub(
         (
-            r'(?P<string>["\'].*?["\']|`[\s\S]*?`)|'
+            r'(?P<string>(["\']).*?\2|`[\s\S]*?`)|'
             r"(?P<r_body>" + regexp + r")"
         ),
         lambda m: (
