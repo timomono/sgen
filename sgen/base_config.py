@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from sgen.base_middleware import BaseMiddleware
+from sgen.base_renderer import BaseRenderer
+from sgen.stdlib.pyrender.renderer import PyRenderer
 
 
 class BaseConfig(ABC):
@@ -55,3 +57,10 @@ class BaseConfig(ABC):
         List of middleware. These are executed at build time.
         """
         return []
+
+    @property
+    def RENDERER(self) -> BaseRenderer:
+        """
+        The renderer used in this project.
+        """
+        return PyRenderer()
