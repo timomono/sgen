@@ -68,8 +68,10 @@ def _obfuscate_variable_name(
     # return res
     if similar_to:
         for name in similar_to:
+            # for i, _ in enumerate(name):
             for i in range(len(name)):
                 namelist = list(name)
+                # Update similar texts
                 # if namelist[i] in (
                 #     element
                 #     for inner_tuple in similar_texts
@@ -163,7 +165,10 @@ RE_VARIABLE_NAME = re.compile(
 RE_MULTIPLE_BREAK = re.compile(r"\n+")
 
 # RE_STRING_LITERAL = re.compile(r'(["\'])(.*?\1)|`[\s\S]*?`')
-RE_STRING_LITERAL = re.compile(r'(["\'`])([\s\S]*?)(\1)')
+RE_STRING_LITERAL = re.compile(r'(["\'`])((?!\1)[\s\S]*?)(\1)')
+RE_STRING_LITERAL_SPLIT = re.compile(
+    r"""(["\'`])((?!\1)[\s\S]*?)(\1)|[^"\'`]+"""
+)
 
 RE_DICT_KEY = re.compile(r'["\'](\w+)"\s*:')
 RE_EMBEDDED_JS = re.compile(r"\${[\s\S]*?}")
@@ -213,6 +218,11 @@ def obfuscate_js(
         args: dict[str, dict[str, str]] = (
             {}
         )  # {func_name: {embedded_js: obfuscated_name}}
+
+        splitted_string_literal: list[str] = [
+            string_part.group()　
+            for string_part in RE_STRING_LITERAL_SPLIT.finditer(code)
+        ]
         for quote, value, quote_end in string_literals:
             assert quote in ('"', "'", "`")
             parts = _split_string(
@@ -251,15 +261,39 @@ def obfuscate_js(
                     string_map_used_quotes[func_name] = quote
                 func_calls.append(f"{func_name}()")
             assert func_calls != []
-            print("REPL", f"{quote}{value}{quote_end}", "+".join(func_calls))
-            print("========CODE========\n", code, "\n====================")
+            # print("REPL", f"{quote}{value}{quote_end}", "+".join(func_calls))
+            # print("========CODE========\n", code, "\n====================")
             # TODO: Not Working:
             # "hello";'"hello"'
             # Working:
             # '"hello"'
-            code = code.replace(
-                f"{quote}{value}{quote_end}", "+".join(func_calls)
+            # code = code.replace(
+            #     f"{quote}{value}{quote_end}", "+".join(func_calls)
+            # )
+            last_splitted_string_literal = splitted_string_literal.copy()
+            print(
+                f"{quote}{value}{quote_end}",
+                "+".join(func_calls),
             )
+            splitted_string_literal = [
+                (
+                    "+".join(func_calls)
+                    if string_part == (quote, value, quote_end)
+                    else string_part
+                )
+                for string_part in splitted_string_literal
+            ]
+            print(last_splitted_string_literal, splitted_string_literal)
+            # Enforce that only one string literal is replaced
+            assert (
+                sum(  # length of difference
+                    last_splitted_string_literal[i]
+                    != splitted_string_literal[i]
+                    for i in range(len(last_splitted_string_literal))
+                )
+                == 1
+            )
+        code = "".join(splitted_string_literal)
 
         for func_name, return_value in string_map_used.items():
             random.seed(options.get("seed"))
