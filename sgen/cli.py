@@ -1,15 +1,16 @@
 import sys
 from sgen import cmds
+from sgen.errors import CommandError, InternalError
 
 
 running_command = None
 
 
-class CommandNotFoundError(NotImplementedError):
+class CommandNotFoundError(CommandError):
     pass
 
 
-class CommandNameDuplicateError(Exception):
+class CommandNameDuplicateError(InternalError):
     pass
 
 
