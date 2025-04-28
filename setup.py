@@ -36,8 +36,12 @@ setup(
     package_data={
         "sgen": [
             "dependencies/closure-compiler.jar",
-            "templates/project/*",
-            "templates/project/*.py",
+            # "templates/project/**/*.py",
+            # "templates/project/*.py",
+            # "templates/project/*.html",
+            # "templates/project/**/*.json",
+            # "templates/project/*.md",
+            "templates/project/.gitignore",
             "example/**/*",
         ]
     },
