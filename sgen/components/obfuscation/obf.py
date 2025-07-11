@@ -13,7 +13,6 @@ except ImportError:
 
 similar_texts = (("l", "I"), ("1", "l"), ("1", "I"), ("i", "j"), ("o", "c"))
 
-
 # Contains incorrect symbols
 # SYMBOL_MAP = {
 #     "0": "+[]",
@@ -58,8 +57,8 @@ similar_texts = (("l", "I"), ("1", "l"), ("1", "I"), ("i", "j"), ("o", "c"))
 
 
 def _obfuscate_variable_name(
+    seed: int,
     similar_to: Iterable[str] | None = None,
-    seed: int | float | str | bytes | bytearray = None,
 ) -> str:
     # assert seed is not None
     # random.seed(seed)
@@ -93,6 +92,7 @@ def _obfuscate_variable_name(
                 if name not in similar_to:
                     return name
     random.seed(seed)
+    text = None
     while similar_to is not None and (
         (text := "".join(random.choices(string.ascii_letters, k=8)))
         in similar_to
@@ -103,16 +103,16 @@ def _obfuscate_variable_name(
     random.seed(seed)
     return (
         "".join(random.choices(string.ascii_letters, k=8))
-        if similar_to is None
+        if text is None
         else text
     )
 
 
 def _split_string(
     text,
+    seed: int,
     max_len: int | None = None,
     except_embedded_js: bool = False,
-    seed: int = None,
 ) -> list[str]:
     random.seed(seed)
     max_len = max_len or random.randint(1, 10)
@@ -136,7 +136,7 @@ def _split_string(
         return [text[i : i + max_len] for i in range(0, len(text), max_len)]
 
 
-def _shuffle_functions(code: str, seed: int = None) -> str:
+def _shuffle_functions(code: str, seed: int) -> str:
     # print(code)
     # return code
     functions: list[str] = re.findall(
@@ -176,14 +176,14 @@ RE_EMBEDDED_JS = re.compile(r"\${[\s\S]*?}")
 
 class ObfuscateOptions(TypedDict):
     is_minify: NotRequired[bool]
-    seed: NotRequired[int | float | str | bytes | bytearray]
+    seed: NotRequired[int]
 
 
 class ObfuscateContext:
     def __init__(
         self,
-        variable_map: dict[str, str] = None,
-        string_map: dict[str, str] = None,
+        variable_map: dict[str, str] | None = None,
+        string_map: dict[str, str] | None = None,
     ) -> None:
         self.variable_map = variable_map or {}
         self.string_map = string_map or {}
@@ -202,6 +202,7 @@ def obfuscate_js(
 
     # Optional args: https://github.com/python/mypy/issues/6131
     options["is_minify"] = options.get("is_minify", True)
+    options["seed"] = options.get("seed", random.randint(0, 1000000))
 
     # Update . to []
     # code = repl_js(r"(\w+)\.(\w+)", r'\1["\2"]', code)
@@ -248,7 +249,8 @@ def obfuscate_js(
                 else:
                     # Make new function
                     func_name = _obfuscate_variable_name(
-                        list(variable_map.values()) + list(string_map.keys()),
+                        similar_to=list(variable_map.values())
+                        + list(string_map.keys()),
                         seed=options.get("seed"),
                     )
                     args[func_name] = {}
