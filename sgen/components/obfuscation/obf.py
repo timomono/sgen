@@ -220,7 +220,7 @@ def obfuscate_js(
         )  # {func_name: {embedded_js: obfuscated_name}}
 
         splitted_string_literal: list[str] = [
-            string_part.group()　
+            string_part.group()
             for string_part in RE_STRING_LITERAL_SPLIT.finditer(code)
         ]
         for quote, value, quote_end in string_literals:
