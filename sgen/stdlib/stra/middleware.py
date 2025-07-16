@@ -83,12 +83,12 @@ class StraMiddleware(BaseMiddleware):
                 and file.is_dir()
             ):
                 shutil.rmtree(path)
-        localeDir: Path = self.config.locale_dir  # type: ignore
-        if not localeDir.exists():
+        locale_dir: Path = self.config.locale_dir  # type: ignore
+        if not locale_dir.exists():
             raise FileNotFoundError(
                 "LOCALE_DIR specified in config.py does not exist"
             )
-        localeFiles = localeDir.glob("*.stra")
+        localeFiles = locale_dir.glob("*.stra")
         locales = list(
             map(lambda f: ".".join(f.name.split(".")[:-1]), localeFiles)
         )
@@ -102,9 +102,9 @@ class StraMiddleware(BaseMiddleware):
             raise NoLangFoundException(self.config)
 
         for locale in locales:
-            buildLocaleDir = build_path / locale
-            if not buildLocaleDir.exists():
-                buildLocaleDir.mkdir()
+            buildLocale_dir = build_path / locale
+            if not buildLocale_dir.exists():
+                buildLocale_dir.mkdir()
 
             for file in temp_path.glob("**/*"):
                 if file.is_dir():
@@ -123,7 +123,7 @@ class StraMiddleware(BaseMiddleware):
                 body = re.sub(
                     rb'\[\[trans \(key:"(?P<key_name>[^"]*)"\)\]\]',
                     lambda m: get_key_trans_value(
-                        m, localeDir, locale, self.config.default_lang
+                        m, locale_dir, locale, self.config.default_lang
                     ),
                     body,
                 )
@@ -149,7 +149,7 @@ class StraMiddleware(BaseMiddleware):
                     ),
                     body,
                 )
-                out_filepath = buildLocaleDir / file.relative_to(temp_path)
+                out_filepath = buildLocale_dir / file.relative_to(temp_path)
                 out_filepath.parent.mkdir(exist_ok=True, parents=True)
                 with open(out_filepath, "wb") as ff:
                     ff.write(body)
@@ -201,16 +201,16 @@ def change_to_localized_link(
 
 
 def get_key_trans_value(
-    m: re.Match, localeDir: Path, locale: str, defaultLang: str
+    m: re.Match, locale_dir: Path, locale: str, default_lang: str
 ) -> bytes:
     key_name: bytes = m.group("key_name")
-    locale_file = localeDir / f"{locale}.stra"
+    locale_file = locale_dir / f"{locale}.stra"
     locale_data = Stra.from_load_file(locale_file)
     try:
         res = locale_data[key_name.decode("utf-8")].encode("utf-8")
         if res == b"":
             return load_from_default_lang(
-                key_name, localeDir, locale, defaultLang
+                key_name, locale_dir, locale, default_lang
             )
         return res
     except KeyError:
@@ -222,15 +222,17 @@ def get_key_trans_value(
                 .replace(b"\n", b"\n> ")
                 + b"\npass"
             )
-        return load_from_default_lang(key_name, localeDir, locale, defaultLang)
+        return load_from_default_lang(
+            key_name, locale_dir, locale, default_lang
+        )
         # raise KeyError(f"Translation key \"{m.group("key_name")}\"")
 
 
 def load_from_default_lang(
-    key_name: bytes, localeDir: Path, locale: str, defaultLang: str
+    key_name: bytes, locale_dir: Path, locale: str, default_lang: str
 ):
-    # Try to load from defaultLang
-    locale_file = localeDir / f"{defaultLang}.stra"
+    # Try to load from default_lang
+    locale_file = locale_dir / f"{default_lang}.stra"
     locale_data = Stra.from_load_file(locale_file)
     try:
         defaultValue: str = locale_data[key_name.decode("utf-8")]

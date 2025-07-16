@@ -52,49 +52,49 @@ class LocalizationMiddleware(BaseMiddleware):
         super().__init__()
 
     @override
-    def do(self, buildPath: Path):
-        temp_path = buildPath / "trans_temp"
+    def do(self, build_path: Path) -> None:
+        temp_path = build_path / "trans_temp"
         temp_path.mkdir()
-        # shutil.move(buildPath, temp_path)
-        for file in list(buildPath.glob("**/*")):
+        # shutil.move(build_path, temp_path)
+        for file in list(build_path.glob("**/*")):
             if file.is_dir():
                 continue
             if file.name == "trans_temp":
                 continue
             if file.suffix not in self.config.localize_file:
                 continue
-            copy_to = temp_path / file.relative_to(buildPath)
+            copy_to = temp_path / file.relative_to(build_path)
             copy_to.parent.mkdir(exist_ok=True, parents=True)
             file.rename(copy_to)
-        for path in buildPath.iterdir():
+        for path in build_path.iterdir():
             if (
                 path.name != "trans_temp"
                 and file.suffix not in self.config.localize_file
                 and file.is_dir()
             ):
                 shutil.rmtree(path)
-        localeDir: Path = self.config.locale_dir  # type: ignore
-        if not localeDir.exists():
+        locale_dir: Path = self.config.locale_dir  # type: ignore
+        if not locale_dir.exists():
             raise FileNotFoundError(
                 "LOCALE_DIR specified in config.py does not exist"
             )
-        localeFiles = localeDir.glob("*.json")
+        localeFiles = locale_dir.glob("*.json")
         locales = list(
             map(lambda f: ".".join(f.name.split(".")[:-1]), localeFiles)
         )
         localesStr = (
             "[" + ",".join(map(lambda s: f'"{s.upper()}"', locales)) + "]"
         )
-        with open(buildPath / "index.html", "w") as f:
+        with open(build_path / "index.html", "w") as f:
             f.write(localeRedirectIndex(localesStr, self.config))
 
         if locales == []:
             raise NoLangFoundException(self.config)
 
         for locale in locales:
-            buildLocaleDir = buildPath / locale
-            if not buildLocaleDir.exists():
-                buildLocaleDir.mkdir()
+            buildLocale_dir = build_path / locale
+            if not buildLocale_dir.exists():
+                buildLocale_dir.mkdir()
 
             for file in temp_path.glob("**/*"):
                 if file.is_dir():
@@ -117,7 +117,7 @@ class LocalizationMiddleware(BaseMiddleware):
                 body = re.sub(
                     rb'\[\[trans \(key:"(?P<key_name>[^"]*)"\)\]\]',
                     lambda m: get_key_trans_value(
-                        m, localeDir, locale, self.config.default_lang
+                        m, locale_dir, locale, self.config.default_lang
                     ),
                     body,
                 )
@@ -143,7 +143,7 @@ class LocalizationMiddleware(BaseMiddleware):
                     ),
                     body,
                 )
-                out_filepath = buildLocaleDir / file.relative_to(temp_path)
+                out_filepath = buildLocale_dir / file.relative_to(temp_path)
                 out_filepath.parent.mkdir(exist_ok=True, parents=True)
                 with open(out_filepath, "wb") as ff:
                     ff.write(body)
@@ -180,17 +180,17 @@ def change_to_localized_link(
 
 
 def get_key_trans_value(
-    m: re.Match, localeDir: Path, locale: str, defaultLang: str
+    m: re.Match, locale_dir: Path, locale: str, default_lang: str
 ) -> bytes:
     key_name: bytes = m.group("key_name")
-    localeFile = localeDir / f"{locale}.json"
+    localeFile = locale_dir / f"{locale}.json"
     with open(localeFile, "r") as f:
         localeJson = json.load(f)
     try:
         return localeJson[key_name.decode("utf-8")].encode("utf-8")
     except KeyError:
-        # Try to load from defaultLang
-        localeFile = localeDir / f"{defaultLang}.json"
+        # Try to load from default_lang
+        localeFile = locale_dir / f"{default_lang}.json"
         with open(localeFile, "r") as f:
             localeJson = json.load(f)
         try:
@@ -252,5 +252,4 @@ def localeRedirectIndex(localesStr: str, config: LocalizationConfig) -> str:
 </html>
     """,
         ext=".html",
-        JSRemoveBr=True,
     )
