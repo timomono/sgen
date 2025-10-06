@@ -44,6 +44,7 @@ class PyRenderer(BaseRenderer):
                         PermissionError(f"Module {name} not permitted")
                     )
                 ),
+                "template_path": path,
             },
         }
         render_from.seek(0)
