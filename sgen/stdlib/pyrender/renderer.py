@@ -4,6 +4,8 @@ from sgen.base_renderer import BaseRenderer
 import re
 import html
 
+from sgen.stdlib.pyrender.avoid_escape import AvoidEscape
+
 py_exec = re.compile(rb"{%(.*?)%}")
 py_eval = re.compile(rb"{{(.*?)}}")
 
@@ -31,7 +33,13 @@ class PyRenderer(BaseRenderer):
                 "sum": sum,
                 "__import__": lambda name, *args: (
                     __import__(name, *args)
-                    if name in ["random", "math", "datetime"]
+                    if name
+                    in [
+                        "random",
+                        "math",
+                        "datetime",
+                        "sgen.stdlib.pyrender.avoid_escape",
+                    ]
                     else (_ for _ in ()).throw(
                         PermissionError(f"Module {name} not permitted")
                     )
@@ -46,15 +54,19 @@ class PyRenderer(BaseRenderer):
                 exec(match.group(1).lstrip(), exec_globals)
                 return b""
 
+            def process_eval(match):
+                result = eval(match.group(1).lstrip(), exec_globals)
+                if isinstance(result, AvoidEscape):
+                    return str(result.value).encode()
+                return html.escape(str(result)).encode()
+
             for line in render_from:
                 line = py_exec.sub(
                     process_exec,
                     line,
                 )
                 line = py_eval.sub(
-                    lambda m: html.escape(
-                        str(eval(m.group(1).lstrip(), exec_globals))
-                    ).encode(),
+                    process_eval,
                     line,
                 )
                 render_to.write(line)
