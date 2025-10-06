@@ -2,6 +2,7 @@ from io import BufferedReader, BufferedWriter
 from pathlib import Path
 from sgen.base_renderer import BaseRenderer
 import re
+import html
 
 py_exec = re.compile(rb"{%(.*?)%}")
 py_eval = re.compile(rb"{{(.*?)}}")
@@ -51,8 +52,8 @@ class PyRenderer(BaseRenderer):
                     line,
                 )
                 line = py_eval.sub(
-                    lambda m: str(
-                        eval(m.group(1).lstrip(), exec_globals)
+                    lambda m: html.escape(
+                        str(eval(m.group(1).lstrip(), exec_globals))
                     ).encode(),
                     line,
                 )
