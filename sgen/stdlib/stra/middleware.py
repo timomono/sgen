@@ -131,11 +131,7 @@ class StraMiddleware(BaseMiddleware):
                 body = re.sub(
                     rb"\[\[trans include "
                     rb'\(filename:"(?P<filename>[^"]*)"\)\]\]',
-                    lambda m: apply_t_include(
-                        self.config,
-                        locale,
-                        m.group("filename").decode("utf-8"),
-                    ),
+                    lambda m: apply_t_include(self.config, locale, m.group()),
                     body,
                 )
                 # Change link

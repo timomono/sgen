@@ -176,7 +176,6 @@ def change_to_localized_link(
     absolute_url = urljoin(str(relative_path), urlparse(result).path)
     result = f"/{locale}" + absolute_url
     return rf'{prefix}"{result}"{suffix}'.encode("utf-8")
-    # return rf'\1"{result}"\4'.encode("utf-8")
 
 
 def get_key_trans_value(

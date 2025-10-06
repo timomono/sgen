@@ -3,8 +3,8 @@ from pathlib import Path
 from sgen.base_renderer import BaseRenderer
 import re
 
-py_exec = re.compile(r"{%(.*?)%}")
-py_eval = re.compile(r"{{(.*?)}}")
+py_exec = re.compile(rb"{%(.*?)%}")
+py_eval = re.compile(rb"{{(.*?)}}")
 
 
 class PyRenderer(BaseRenderer):
@@ -30,7 +30,7 @@ class PyRenderer(BaseRenderer):
                 "sum": sum,
                 "__import__": lambda name, *args: (
                     __import__(name, *args)
-                    if name in ["random"]
+                    if name in ["random", "math", "datetime"]
                     else (_ for _ in ()).throw(
                         PermissionError(f"Module {name} not permitted")
                     )
@@ -39,17 +39,26 @@ class PyRenderer(BaseRenderer):
         }
         render_from.seek(0)
         self.sandboxing()
-        for line in render_from:
-            line = py_exec.sub(
-                lambda m: exec(m.group(1).lstrip(), exec_globals),
-                line,
-            )
-            line = py_eval.sub(
-                lambda m: str(eval(m.group(1).lstrip(), exec_globals)),
-                line,
-            )
-            render_to.write(line)
-        self.SANDBOXING = False
+        try:
+
+            def process_exec(match):
+                exec(match.group(1).lstrip(), exec_globals)
+                return b""
+
+            for line in render_from:
+                line = py_exec.sub(
+                    process_exec,
+                    line,
+                )
+                line = py_eval.sub(
+                    lambda m: str(
+                        eval(m.group(1).lstrip(), exec_globals)
+                    ).encode(),
+                    line,
+                )
+                render_to.write(line)
+        finally:
+            self.SANDBOXING = False
         return super().render(render_from, render_to, path)
 
     def sandboxing(self):

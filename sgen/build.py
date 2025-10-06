@@ -1,6 +1,5 @@
 import shutil
 import sys
-from jinja2 import Environment, FileSystemLoader, select_autoescape
 from logging import getLogger
 from sgen.get_config import sgen_config
 
@@ -14,12 +13,6 @@ logger = getLogger(__name__)
 
 def build() -> None:
     srcDir = sgen_config.SRC_DIR
-    env = Environment(
-        loader=FileSystemLoader(srcDir),
-        trim_blocks=True,
-        autoescape=select_autoescape(),
-        extensions=[TransIncludeExtension, TransExtension],
-    )
     files = srcDir.glob("**/*")
     if sgen_config.BUILD_DIR.exists():
         logger.info("Build directory already exists. Removing...")
@@ -49,16 +42,16 @@ def build() -> None:
         if file.suffix not in TEMPLATE_EXTS:
             shutil.copy(file, sgen_config.BUILD_DIR / file.relative_to(srcDir))
             continue
-        templateName = str(file.relative_to(srcDir))
-        template = env.get_template(templateName)
+
         # result = template.render()
         # with open(file, mode="r") as f:
         #     template = Template(f.read())
-        with open(sgen_config.BUILD_DIR / file.relative_to(srcDir), "w") as f:
-            f.write(
-                template.render(
-                    relative_url="/" + str(file.relative_to(srcDir))
+        with open(
+            sgen_config.BUILD_DIR / file.relative_to(srcDir), "wb"
+        ) as to:
+            with open(file, "rb") as from_:
+                sgen_config.RENDERER.render(
+                    from_, to, file.relative_to(srcDir)
                 )
-            )
     for middleware in sgen_config.MIDDLEWARE:
         middleware.do(sgen_config.BUILD_DIR)
