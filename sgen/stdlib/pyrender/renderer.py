@@ -7,8 +7,8 @@ import html
 
 from sgen.stdlib.pyrender.avoid_escape import AvoidEscape
 
-py_exec = re.compile(rb"{%[ \n]([\s\S]*?)%}", re.DOTALL)
-py_eval = re.compile(rb"{{(.*?)}}")
+py_exec = re.compile(rb"{%[ \n]*([\s\S]*?)[ \n]*%}", re.DOTALL)
+py_eval = re.compile(rb"{{[ \n]*([\s\S]*?)[ \n]*}}", re.DOTALL)
 
 PERMITTED_MODULES = [
     "random",
@@ -90,16 +90,16 @@ class PyRenderer(BaseRenderer):
                     return str(result.value).encode()
                 return html.escape(str(result)).encode()
 
-            for line in render_from:
-                line = py_exec.sub(
-                    process_exec,
-                    line,
-                )
-                line = py_eval.sub(
-                    process_eval,
-                    line,
-                )
-                render_to.write(line)
+            # for line in render_from:
+            #     line = py_exec.sub(
+            #         process_exec,
+            #         line,
+            #     )
+            #     line = py_eval.sub(
+            #         process_eval,
+            #         line,
+            #     )
+            #     render_to.write(line)
             content = render_from.read()
             content = py_exec.sub(
                 process_exec,
