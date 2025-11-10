@@ -1,0 +1,5 @@
+recursive-include sgen/templates *
+recursive-include sgen/dependencies *
+recursive-include sgen/example *
+include README.md
+include LICENSE
