@@ -7,7 +7,7 @@ import html
 
 from sgen.stdlib.pyrender.avoid_escape import AvoidEscape
 
-py_exec = re.compile(rb"{%[ \n]([\s\S]*?)%}", re.DOTALL)
+py_exec = re.compile(rb"{%\s*([\s\S]*?)%}", re.DOTALL)  # \s* = zero or more spaces
 py_eval = re.compile(rb"{{(.*?)}}")
 
 PERMITTED_MODULES = [
@@ -74,17 +74,17 @@ class PyRenderer(BaseRenderer):
 
             def process_exec(match):
                 exec(
-                    match.group(1).lstrip(),
-                    globals=exec_globals,
-                    locals=exec_locals,
+                    match.group(1).strip(),
+                    exec_globals,
+                    exec_locals,
                 )
                 return b""
 
             def process_eval(match):
                 result = eval(
-                    match.group(1).lstrip(),
-                    globals=exec_globals,
-                    locals=exec_locals,
+                    match.group(1).strip(),
+                    exec_globals,
+                    exec_locals,
                 )
                 if isinstance(result, AvoidEscape):
                     return str(result.value).encode()
