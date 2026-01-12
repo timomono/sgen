@@ -1,14 +1,19 @@
+from enum import Enum
 from io import BufferedReader, BufferedWriter, BytesIO
 from pathlib import Path
-from typing import Any, BinaryIO
+from pprint import pprint
+from typing import Any, BinaryIO, Generator
 from sgen.base_renderer import BaseRenderer
 import re
 import html
 
 from sgen.stdlib.pyrender.avoid_escape import AvoidEscape
+from sgen.stdlib.pyrender.tokenizer import TokenType, processTags, tokenize
 
-py_exec = re.compile(rb"{%\s*([\s\S]*?)%}", re.DOTALL)  # \s* = zero or more spaces
-py_eval = re.compile(rb"{{(.*?)}}")
+# py_exec = re.compile(
+#     rb"{%\s*([\s\S]*?)%}", re.DOTALL
+# )  # \s* = zero or more spaces
+# py_eval = re.compile(rb"{{\s*([\s\S]*?)}}", re.DOTALL)
 
 PERMITTED_MODULES = [
     "random",
@@ -72,44 +77,26 @@ class PyRenderer(BaseRenderer):
 
             exec_locals["include"] = include_in_template
 
-            def process_exec(match):
-                exec(
-                    match.group(1).strip(),
+            # pprint(list(map(str, tokenize(from_, to))))
+
+            processTags(
+                render_from,
+                render_to,
+                lambda code: eval(
+                    code.strip(),
                     exec_globals,
                     exec_locals,
-                )
-                return b""
-
-            def process_eval(match):
-                result = eval(
-                    match.group(1).strip(),
-                    exec_globals,
-                    exec_locals,
-                )
-                if isinstance(result, AvoidEscape):
-                    return str(result.value).encode()
-                return html.escape(str(result)).encode()
-
-            for line in render_from:
-                line = py_exec.sub(
-                    process_exec,
-                    line,
-                )
-                line = py_eval.sub(
-                    process_eval,
-                    line,
-                )
-                render_to.write(line)
-            content = render_from.read()
-            content = py_exec.sub(
-                process_exec,
-                content,
+                ),
             )
-            content = py_eval.sub(
-                process_eval,
-                content,
-            )
-            render_to.write(content)
+
+            # content = py_exec.sub(
+            #     process_exec,
+            #     content,
+            # )
+            # content = py_eval.sub(
+            #     process_eval,
+            #     content,
+            # )
         finally:
             self.SANDBOXING = False
         return super().render(render_from, render_to, path)
