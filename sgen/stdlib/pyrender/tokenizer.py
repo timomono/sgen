@@ -3,6 +3,9 @@ from enum import Enum
 from io import BufferedReader, BufferedWriter
 from typing import BinaryIO, Callable
 
+from sgen.stdlib.pyrender.avoid_escape import AvoidEscape
+import html
+
 # """
 # example:
 # [
@@ -103,7 +106,12 @@ def processTags(
                 depth -= 1
                 if depth == 0:
                     if token.token == b"}}":
-                        to.write(str(eval(tag[:-2])).encode())
+                        result = eval(tag[:-2])
+                        if isinstance(result, AvoidEscape):
+                            result = result.value
+                        else:
+                            result = html.escape(result)
+                        to.write(str(result).encode())
                     elif token.token == b"%}":
                         exec(tag[:-2])
                     tag = b""
