@@ -39,16 +39,16 @@ def tokenize(from_: BufferedReader | BinaryIO) -> Generator[Token, None, None]:
         byte: bytes = from_.read(1)
         if byte == b"":
             break
-        if byte == b"{" and prev_byte == b"{":
+        if prev_byte == b"{" and (byte == b"{" or byte == b"%"):
             if current:
                 yield Token(current[:-1], TokenType.TEXT)
                 current = b""
-            yield Token(b"{{", TokenType.PUNCTUATION)
-        elif byte == b"}" and prev_byte == b"}":
+            yield Token(prev_byte + byte, TokenType.PUNCTUATION)
+        elif (prev_byte == b"%" or prev_byte == b"}") and byte == b"}":
             if current:
                 yield Token(current[:-1], TokenType.TEXT)
                 current = b""
-            yield Token(b"}}", TokenType.PUNCTUATION)
+            yield Token(prev_byte + byte, TokenType.PUNCTUATION)
         else:
             current += byte
 
@@ -58,32 +58,59 @@ def tokenize(from_: BufferedReader | BinaryIO) -> Generator[Token, None, None]:
         yield Token(current, TokenType.TEXT)
 
 
+punctuationPair = {
+    b"{{": b"}}",
+    b"{%": b"%}",
+}
+
+
+class PyrenderSyntaxError(SyntaxError):
+    def __str__(self) -> str:
+        return f"PyrenderSyntaxError('{self.msg}')"
+
+
 def processTags(
     from_: BufferedReader | BinaryIO,
     to: BufferedWriter | BinaryIO,
-    eval: Callable,
+    eval: Callable[[bytes], str],
+    exec: Callable[[bytes], None],
 ):
     from_.seek(0)
     tokens = tokenize(from_)
 
     depth = 0
     tag = b""
+    currentLine = 1
+    startPunctuations: list[bytes] = []
     for token in tokens:
-        print(token)
+        currentLine += token.token.count(b"\n")
         tag += token.token
         if token.type == TokenType.PUNCTUATION:
+            # if len(startPunctuations) > 0:
+            #     print(punctuationPair[startPunctuations[-1]])
             # print(token.token)
-            if token.token == b"{{":
+            if token.token == b"{{" or token.token == b"{%":
                 depth += 1
+                startPunctuations.append(token.token)
                 # print(depth)
                 if depth == 1:
                     tag = b""
-
-            elif token.token == b"}}":
+            elif (
+                len(startPunctuations) > 0
+                and token.token == punctuationPair[startPunctuations[-1]]
+            ):
+                startPunctuations.pop()
                 depth -= 1
                 if depth == 0:
-                    to.write(str(eval(tag[:-2])).encode())
+                    if token.token == b"}}":
+                        to.write(str(eval(tag[:-2])).encode())
+                    elif token.token == b"%}":
+                        exec(tag[:-2])
                     tag = b""
+            elif token.token == b"}}" or token.token == b"%}":
+                raise PyrenderSyntaxError(
+                    f"Mismatch punctuations (at line {currentLine})"
+                )
         if depth == 0:
             # print("raw", tag)
             to.write(tag)

@@ -87,6 +87,11 @@ class PyRenderer(BaseRenderer):
                     exec_globals,
                     exec_locals,
                 ),
+                lambda code: exec(
+                    code.strip(),
+                    exec_globals,
+                    exec_locals,
+                ),
             )
 
             # content = py_exec.sub(
