@@ -15,13 +15,13 @@ from sgen.stdlib.pyrender.tokenizer import TokenType, processTags, tokenize
 # )  # \s* = zero or more spaces
 # py_eval = re.compile(rb"{{\s*([\s\S]*?)}}", re.DOTALL)
 
-PERMITTED_MODULES = [
-    "random",
-    "math",
-    "datetime",
-    "sgen.stdlib.pyrender.avoid_escape",
-    "sgen.stdlib.pyrender.template",
-]
+# PERMITTED_MODULES = [
+#     "random",
+#     "math",
+#     "datetime",
+#     "sgen.stdlib.pyrender.avoid_escape",
+#     "sgen.stdlib.pyrender.template",
+# ]
 
 
 class PyRenderer(BaseRenderer):
@@ -48,10 +48,10 @@ class PyRenderer(BaseRenderer):
                 "sum": sum,
                 "__import__": lambda name, *args: (
                     __import__(name, *args)
-                    if name in PERMITTED_MODULES
-                    else (_ for _ in ()).throw(
-                        PermissionError(f"Module {name} not permitted")
-                    )
+                    # if name in PERMITTED_MODULES
+                    # else (_ for _ in ()).throw(
+                    #     PermissionError(f"Module {name} not permitted")
+                    # )
                 ),
             },
         }
@@ -118,27 +118,27 @@ class PyRenderer(BaseRenderer):
             # if event == "open":
             #     print(args[0])
             #     raise PermissionError("Operation forbidden: open.")
-            if event.split(".")[0] in [
-                "subprocess",
-                "os",
-                "shutil",
-                "winreg",
-                "sys",
-                "gc",
-            ]:
-                raise PermissionError(
-                    f"Operation forbidden: {event.split(".")[0]}."
-                )
-            if event == "module.__getattribute__" and args[0] in [
-                "subprocess",
-                "os",
-                "shutil",
-                "winreg",
-                "sys",
-                "gc",
-            ]:
-                raise PermissionError(f"Operation forbidden: {args[0]}")
-            if event == "import" and args[0] == "os":
-                raise ImportError("Usage of 'os' module is prohibited!")
+            # if event.split(".")[0] in [
+            #     "subprocess",
+            #     "os",
+            #     "shutil",
+            #     "winreg",
+            #     "sys",
+            #     "gc",
+            # ]:
+            #     raise PermissionError(
+            #         f"Operation forbidden: {event.split(".")[0]}."
+            #     )
+            # if event == "module.__getattribute__" and args[0] in [
+            #     "subprocess",
+            #     "os",
+            #     "shutil",
+            #     "winreg",
+            #     "sys",
+            #     "gc",
+            # ]:
+            #     raise PermissionError(f"Operation forbidden: {args[0]}")
+            # if event == "import" and args[0] == "os":
+            #     raise ImportError("Usage of 'os' module is prohibited!")
 
         addaudithook(handle)

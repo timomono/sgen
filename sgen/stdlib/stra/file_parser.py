@@ -36,6 +36,8 @@ class Stra(OverrideStrict):
         value: dict[str, str] = {}
         lines = text.splitlines()
         pointer = 0
+        if len(lines) == 0:
+            return value
         while True:
             key = ""
             while lines[pointer].lstrip() == "":

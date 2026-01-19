@@ -4,11 +4,6 @@ from logging import getLogger
 from sgen.get_config import sgen_config
 import re
 
-from sgen.stdlib.localization.templatetag import (
-    TransIncludeExtension,
-    TransExtension,
-)
-
 logger = getLogger(__name__)
 RE_IGNORE_COMMENTS = re.compile(
     rb"<!--\s*sgen\s*:\s*ignore\s*-->", re.IGNORECASE

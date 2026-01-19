@@ -5,6 +5,7 @@ from typing import BinaryIO, Callable
 
 from sgen.stdlib.pyrender.avoid_escape import AvoidEscape
 import html
+from logging import getLogger
 
 # """
 # example:
@@ -19,6 +20,8 @@ import html
 #     }
 # ]
 # """
+
+logger = getLogger(__name__)
 
 
 class TokenType(Enum):
@@ -106,14 +109,25 @@ def processTags(
                 depth -= 1
                 if depth == 0:
                     if token.token == b"}}":
-                        result = eval(tag[:-2])
+                        result = "[error]"
+                        try:
+                            result = eval(tag[:-2])
+                        except Exception as e:
+                            logger.warning(
+                                f"{e.__class__.__name__} at line {currentLine}: {e}"
+                            )
                         if isinstance(result, AvoidEscape):
                             result = result.value
                         else:
                             result = html.escape(result)
                         to.write(str(result).encode())
                     elif token.token == b"%}":
-                        exec(tag[:-2])
+                        try:
+                            exec(tag[:-2])
+                        except Exception as e:
+                            logger.warning(
+                                f"{e.__class__.__name__} at line {currentLine}: {e}"
+                            )
                     tag = b""
             elif token.token == b"}}" or token.token == b"%}":
                 raise PyrenderSyntaxError(
