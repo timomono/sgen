@@ -112,6 +112,9 @@ def processTags(
                         result = "[error]"
                         try:
                             result = eval(tag[:-2])
+                        except NameError:
+                            # empty for nameerror
+                            result = ""
                         except Exception as e:
                             logger.warning(
                                 f"{e.__class__.__name__} at line {currentLine}: {e}"
