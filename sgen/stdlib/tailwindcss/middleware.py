@@ -33,7 +33,6 @@ class TailwindcssMiddleware(BaseMiddleware):
                 with open(file, "wb") as fwb:
                     fwb.write(body)
         else:
-            logger.info("processing files")
             try:
                 result = run(
                     ["npm", "i"],
@@ -44,9 +43,6 @@ class TailwindcssMiddleware(BaseMiddleware):
                     logger.warning(
                         f"'npm i' failed with return code ${result.returncode}"
                     )
-                if result.stdout != None:
-                    logger.info("stdout of 'npm i':")
-                    logger.info(result.stdout.decode())
                 if result.stderr != b"":
                     logger.warning("stderr of 'npm i':")
                     logger.warning(result.stderr.decode())
@@ -75,7 +71,9 @@ class TailwindcssMiddleware(BaseMiddleware):
                         logger.info("stdout of tailwindcss:")
                         logger.info(result.stdout.decode())
                     if "Done in" not in result.stderr.decode():
-                        logger.warning("stderr of tailwindcss:")
+                        logger.warning(
+                            f"stderr of tailwindcss (during processing {file}):"
+                        )
                         logger.warning(result.stderr.decode())
                     file.unlink()
                     shutil.copy(temp_file, file)
