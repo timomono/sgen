@@ -62,6 +62,8 @@ class StraMiddleware(BaseMiddleware):
     def do(self, build_path: Path):
         temp_path = build_path / "stra_temp"
         temp_path.mkdir()
+
+        # Move to the sub directory
         # shutil.move(buildPath, temp_path)
         for file in list(build_path.glob("**/*")):
             if file.is_dir():
@@ -72,22 +74,14 @@ class StraMiddleware(BaseMiddleware):
                 continue
             copy_to = temp_path / file.relative_to(build_path)
             copy_to.parent.mkdir(exist_ok=True, parents=True)
-            # if file.name in ("404.html",):
-            # shutil.copyfile(file, copy_to)
-            # else:
             file.rename(copy_to)
-        for path in build_path.iterdir():
-            if (
-                path.name != "stra_temp"
-                and file.suffix not in self.config.localize_file
-                and file.is_dir()
-            ):
-                shutil.rmtree(path)
-        locale_dir: Path = self.config.locale_dir  # type: ignore
+
+        locale_dir: Path = self.config.locale_dir
         if not locale_dir.exists():
             raise FileNotFoundError(
                 "LOCALE_DIR specified in config.py does not exist"
             )
+
         localeFiles = locale_dir.glob("*.stra")
         locales = list(
             map(lambda f: ".".join(f.name.split(".")[:-1]), localeFiles)
@@ -131,7 +125,9 @@ class StraMiddleware(BaseMiddleware):
                 body = re.sub(
                     rb"\[\[trans include "
                     rb'\(filename:"(?P<filename>[^"]*)"\)\]\]',
-                    lambda m: apply_t_include(self.config, locale, m.group()),
+                    lambda m: apply_t_include(
+                        self.config, locale, m.group("filename").decode()
+                    ),
                     body,
                 )
                 # Change link
@@ -165,16 +161,16 @@ class StraMiddleware(BaseMiddleware):
 
 
 def change_to_localized_link(
-    match: re.Match,
+    match: re.Match[bytes],
     locale: str,
     file: Path,
     base_dir: Path,
     config: StraConfig,
-):
+) -> bytes:
     prefix: str = match.group("prefix").decode("utf-8")
     suffix: str = match.group("suffix").decode("utf-8")
     result: str = match.group("result").decode("utf-8")
-    tag: str = match.group("tag")
+    tag: bytes = match.group("tag")
     filename = result.split("/")[-1]
     ext: str | None = (
         "." + filename.split(".")[-1] if "." in filename else None
