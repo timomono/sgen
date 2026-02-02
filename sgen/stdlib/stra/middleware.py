@@ -149,7 +149,7 @@ class StraMiddleware(BaseMiddleware):
         for directory in build_path.glob("**/*"):
             # Is empty directory?
             if directory.is_dir() and not any(
-                d for d in directory.glob("*") if d.is_file()
+                d for d in directory.glob("**/*") if d.is_file()
             ):
                 shutil.rmtree(directory)
         for rel_file in self.config.files_to_copy_to_root:
