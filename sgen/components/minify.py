@@ -69,7 +69,7 @@ def minify(
             res,
         )
         res = repl_js(
-            r"(;)*(?P<symbol>=>|=|,|\?|:|\)|\+(?!\+)|\.)",
+            r"(;)*(?P<symbol>=>|=|,|\?|:|\)|\+(?!\+)|\.|\|\|)",
             lambda m: m.group("symbol"),
             res,
         )
