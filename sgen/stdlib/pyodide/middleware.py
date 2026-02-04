@@ -50,13 +50,35 @@ class PyodideMiddleware(BaseMiddleware):
     @staticmethod
     def template(script: bytes):
         return (
-            b"""// ATTENTION: DO NOT USE THE BASE64 FOR SECURITY
+            b"""// ATTENTION: DO NOT USE THE BASE64 FOR SECURITY REASONS
 (async () => {
-    window.__pyodide_obj ||= await loadPyodide();
+    const loading_status = {
+        unloaded: 0,
+        loading: 1,
+        loaded: 2,
+    }
     const decoded_utf8str = atob("%s");
     const decoded_array = new Uint8Array(Array.prototype.map.call(decoded_utf8str, c => c.charCodeAt()));
     const decoded = new TextDecoder().decode(decoded_array);
-    __pyodide_obj.runPython(decoded);
+
+    const run = () => __pyodide_obj.runPython(decoded);
+
+    switch (window.__pyodide_loading_status) {
+        case loading_status.unloaded:
+        case undefined:
+            window.__pyodide_obj ||= await loadPyodide();
+            run()
+            window.dispatchEvent(new Event("pyodideload"))
+            break;
+
+        case loading_status.loading:
+            window.addEventListener("pyodideload", run)
+            break;
+
+        case loading_status.loaded:
+            run()
+            break;
+    }
 })()
 """
             # % json.dumps(bytes(script)).encode()
