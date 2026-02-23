@@ -33,30 +33,19 @@ class TailwindcssMiddleware(BaseMiddleware):
                 with open(file, "wb") as fwb:
                     fwb.write(body)
         else:
-            try:
-                result = run(
-                    ["npm", "i"],
-                    stdout=PIPE,
-                    stderr=PIPE,
-                )
-                if result.returncode != 0:
-                    logger.warning(
-                        f"'npm i' failed with return code ${result.returncode}"
-                    )
-                if result.stderr != b"":
-                    logger.warning("stderr of 'npm i':")
-                    logger.warning(result.stderr.decode())
-            except Exception as e:
-                logger.warning("Error while 'npm i':")
-                logger.warning(e)
             temp_path = build_path / "temp"
             temp_path.mkdir()
             for file in build_path.glob("**/*.css"):
                 temp_file = temp_path / (uuid4().hex + ".css")
                 try:
+                    logger.debug(f"Processing {file} with tailwindcss...")
+                    logger.debug(
+                        f"Running command: npx -y @tailwindcss/cli -i {file} -o {temp_file} {'--minify' if self.minify else ''}"
+                    )
                     result = run(
                         [
                             f"npx",
+                            "-y",
                             "@tailwindcss/cli",
                             "-i",
                             file.absolute(),
