@@ -14,7 +14,7 @@ def build() -> None:
     srcDir = sgen_config.SRC_DIR
     files = srcDir.glob("**/*")
     if sgen_config.BUILD_DIR.exists():
-        logger.info("Build directory already exists. Removing...")
+        logger.debug("Build directory already exists. Removing...")
         if sys.version_info >= (3, 12):
             shutil.rmtree(
                 sgen_config.BUILD_DIR, onexc=lambda _, __, ___: None

@@ -83,12 +83,12 @@ class PyRenderer(BaseRenderer):
                 render_from,
                 render_to,
                 lambda code: eval(
-                    code.strip(),
+                    code.strip(b" \t"),
                     exec_globals,
                     exec_locals,
                 ),
                 lambda code: exec(
-                    code.strip(),
+                    code.strip(b" \t"),
                     exec_globals,
                     exec_locals,
                 ),

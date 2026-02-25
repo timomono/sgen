@@ -1,6 +1,7 @@
 from collections.abc import Generator
 from enum import Enum
 from io import BufferedReader, BufferedWriter
+import re
 from typing import BinaryIO, Callable
 
 from sgen.stdlib.pyrender.avoid_escape import AvoidEscape
@@ -75,6 +76,32 @@ class PyrenderSyntaxError(SyntaxError):
         return f"PyrenderSyntaxError('{self.msg}')"
 
 
+class PyrenderInternalError(Exception):
+    def __str__(self) -> str:
+        return f"PyrenderInternalError('{self.args[0]}')"
+
+
+def addLineNum(tag: str, startLine: int) -> str:
+    overview = ""
+    for i, line in enumerate(tag.splitlines()):
+        overview += f"{i + startLine:3d}| {line}\n"
+    return overview[:-1]  # remove last \n
+
+
+def tagOverview(tag: bytes, startLine: int) -> str:
+    if len(tag) > 20:
+        return (
+            addLineNum(tag[:20].decode() + "...", startLine)
+            + "\n...\n"
+            + addLineNum(
+                "..." + tag[-20:].decode(),
+                startLine + tag[:-20].decode().count("\n"),
+            )
+        )
+    else:
+        return addLineNum(tag.decode(), startLine)
+
+
 def processTags(
     from_: BufferedReader | BinaryIO,
     to: BufferedWriter | BinaryIO,
@@ -87,6 +114,7 @@ def processTags(
     depth = 0
     tag = b""
     currentLine = 1
+    startLine: int | None = None
     startPunctuations: list[bytes] = []
     for token in tokens:
         currentLine += token.token.count(b"\n")
@@ -100,6 +128,7 @@ def processTags(
                 startPunctuations.append(token.token)
                 # print(depth)
                 if depth == 1:
+                    startLine = currentLine
                     tag = b""
             elif (
                 len(startPunctuations) > 0
@@ -109,15 +138,41 @@ def processTags(
                 depth -= 1
                 if depth == 0:
                     if token.token == b"}}":
+                        if startLine is None:
+                            raise PyrenderInternalError(
+                                "startLine is None when processing }} tag"
+                            )
                         result = "[error]"
                         try:
                             result = eval(tag[:-2])
                         except NameError:
                             # empty for nameerror
                             result = ""
+                        except SyntaxError as e:
+                            if e.lineno is None:
+                                logger.warning(
+                                    f"Python SyntaxError: {e}\n"
+                                    + tag[:-2].decode()
+                                )
+                            else:
+                                logger.warning(
+                                    f"Python SyntaxError at line {e.lineno + startLine - 1}: {e.msg}\n"
+                                    + addLineNum(
+                                        "\n".join(
+                                            tag[:-2]
+                                            .decode()
+                                            .splitlines()[
+                                                e.lineno - 2 : e.lineno + 1
+                                            ]
+                                        ),
+                                        e.lineno + startLine - 2,
+                                    )
+                                )
                         except Exception as e:
                             logger.warning(
-                                f"{e.__class__.__name__} at line {currentLine}: {e}"
+                                f"{e.__class__.__name__}:\n{e}\n at line "
+                                + f"{startLine if startLine == currentLine else f"{startLine} to {currentLine}"}: {e}\n"
+                                + f"{tagOverview(tag[:-2], startLine)}"
                             )
                         if isinstance(result, AvoidEscape):
                             result = result.value
@@ -125,11 +180,16 @@ def processTags(
                             result = html.escape(result)
                         to.write(str(result).encode())
                     elif token.token == b"%}":
+                        if startLine is None:
+                            raise PyrenderInternalError(
+                                "startLine is None when processing %} tag"
+                            )
                         try:
                             exec(tag[:-2])
                         except Exception as e:
                             logger.warning(
-                                f"{e.__class__.__name__} at line {currentLine}: {e}"
+                                f"{e.__class__.__name__} at line {currentLine}: {e}\n"
+                                + f"{tagOverview(tag[:-2], startLine)}"
                             )
                     tag = b""
             elif token.token == b"}}" or token.token == b"%}":

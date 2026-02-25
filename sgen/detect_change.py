@@ -145,7 +145,10 @@ def fPrint(s: str, color: ConsoleColor | None = None):
     for console_output in console_outputs:
         colorStr = console_output.getColorString()
         terminal_size = shutil.get_terminal_size()
-        if len(s) > terminal_size.columns:
+        if (
+            len(console_output.body) > terminal_size.columns
+            or "\n" in console_output.body
+        ):
             print(colorStr)
             continue
         spaceSize = (terminal_size.columns - len(console_output.body)) / 2
