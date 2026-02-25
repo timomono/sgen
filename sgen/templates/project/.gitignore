@@ -2,3 +2,5 @@ __pycache__
 build
 .DS_Store
 env
+node_modules
+.cache

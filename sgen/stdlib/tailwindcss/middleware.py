@@ -1,4 +1,5 @@
 from enum import StrEnum, auto
+import hashlib
 from logging import getLogger
 import os
 from pathlib import Path
@@ -17,6 +18,16 @@ from sys import stdout
 
 cdn = b'<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>'
 logger = getLogger(__name__)
+
+
+def convert_to_cache_name(file: Path) -> str:
+    from sgen.get_config import sgen_config
+
+    return (
+        str(file.relative_to(sgen_config.BASE_DIR))
+        .replace("/", "__")
+        .replace("\\", "__")
+    )
 
 
 class TailwindcssMode(StrEnum):
@@ -47,6 +58,8 @@ class TailwindcssMiddleware(BaseMiddleware):
 
     @override
     def do(self, build_path: Path):
+        from sgen.get_config import sgen_config
+
         match self.mode:
             case TailwindcssMode.CDN:
                 # Use CDN
@@ -65,6 +78,24 @@ class TailwindcssMiddleware(BaseMiddleware):
                 temp_path.mkdir()
                 files_num = len(list(build_path.glob("**/*.css")))
                 for i, file in enumerate(list(build_path.glob("**/*.css"))):
+                    # check if the cache is available
+                    with open(file, "rb") as frb:
+                        file_hash = hashlib.file_digest(frb, "sha256").digest()
+                    cached_hash = (
+                        sgen_config.BASE_DIR
+                        / ".cache"
+                        / "tailwindcss"
+                        / (convert_to_cache_name(file) + ".hash")
+                    )
+                    if (
+                        cached_hash.exists() and cached_hash.is_file()
+                    ) and cached_hash.read_bytes() == file_hash:
+                        logger.debug(
+                            f"Cache hit for {file}, skipping tailwindcss processing..."
+                        )
+                        shutil.copy(file, temp_path / file.name)
+                        continue
+
                     stdout.write(
                         f"\033[KCompiling Tailwind CSS: "
                         + f"{i + 1: 2}"
@@ -73,6 +104,7 @@ class TailwindcssMiddleware(BaseMiddleware):
                         + str(file.relative_to(build_path))
                         + "\r"
                     )
+
                     temp_file = temp_path / (uuid4().hex + ".css")
                     try:
                         logger.debug(f"Processing {file} with tailwindcss...")
@@ -154,6 +186,27 @@ class TailwindcssMiddleware(BaseMiddleware):
                                 f"stderr of tailwindcss (during processing {file}):"
                             )
                             logger.warning(result.stderr.decode())
+
+                        # write hash of original file to reduce unnecessary re-compiling
+                        with open(file, "rb") as frb:
+                            original_hash = hashlib.file_digest(frb, "sha256")
+                        cache_file = (
+                            sgen_config.BASE_DIR
+                            / ".cache"
+                            / "tailwindcss"
+                            / (convert_to_cache_name(file))
+                        )
+                        hash_file = cache_file.with_suffix(
+                            cache_file.suffix + ".hash"
+                        )
+                        hash_file.parent.mkdir(parents=True, exist_ok=True)
+
+                        hash_file.write_bytes(original_hash.digest())
+                        shutil.copy(
+                            temp_file, cache_file
+                        )  # Cache the compiled css
+
+                        # replace original file with the compiled file
                         file.unlink()
                         shutil.copy(temp_file, file)
                         temp_file.unlink()
