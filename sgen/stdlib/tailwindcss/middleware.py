@@ -66,10 +66,12 @@ class TailwindcssMiddleware(BaseMiddleware):
                 files_num = len(list(build_path.glob("**/*.css")))
                 for i, file in enumerate(list(build_path.glob("**/*.css"))):
                     stdout.write(
-                        f"Compiling Tailwind CSS: "
-                        + f"{i: 2}"
-                        + f"/{files_num: 2}"
-                        + f"({i / files_num * 100: 4.1f}%)\r"
+                        f"\033[KCompiling Tailwind CSS: "
+                        + f"{i + 1: 2}"
+                        + f"/{files_num: 2} "
+                        + f"({i / files_num * 100: 5.1f}%) "
+                        + str(file.relative_to(build_path))
+                        + "\r"
                     )
                     temp_file = temp_path / (uuid4().hex + ".css")
                     try:
