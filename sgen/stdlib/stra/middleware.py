@@ -115,7 +115,7 @@ class StraMiddleware(BaseMiddleware):
                     body = ff.read()
                 # Apply key translation
                 body = re.sub(
-                    rb'\[\[trans \(key:"(?P<key_name>[^"]*)"\)\]\]',
+                    rb'\[\[trans \(key:"(?P<key_name>[\s\S]*?)"\)\]\]',
                     lambda m: get_key_trans_value(
                         m, locale_dir, locale, self.config.default_lang
                     ),
@@ -124,7 +124,7 @@ class StraMiddleware(BaseMiddleware):
                 # Apply t_include
                 body = re.sub(
                     rb"\[\[trans include "
-                    rb'\(filename:"(?P<filename>[^"]*)"\)\]\]',
+                    rb'\(filename:"(?P<filename>[\s\S]*?)"\)\]\]',
                     lambda m: apply_t_include(
                         self.config, locale, m.group("filename").decode()
                     ),
