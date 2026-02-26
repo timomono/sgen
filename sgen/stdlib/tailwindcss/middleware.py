@@ -94,7 +94,10 @@ class TailwindcssMiddleware(BaseMiddleware):
                         logger.debug(
                             f"Cache hit for {file}, skipping tailwindcss processing..."
                         )
-                        shutil.copy(file, temp_path / file.name)
+                        shutil.copy(
+                            cached_hash.parent / convert_to_cache_name(file),
+                            file,
+                        )
                         continue
 
                     stdout.write(
