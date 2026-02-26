@@ -33,7 +33,7 @@ class Build(Command):
             )
 
         build()
-        print("Successfully built!")
+        logger.info("Successfully built!")
 
 
 class ListenChange(Command):

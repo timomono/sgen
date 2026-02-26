@@ -77,6 +77,7 @@ class TailwindcssMiddleware(BaseMiddleware):
                 temp_path = build_path / "temp"
                 temp_path.mkdir()
                 files_num = len(list(build_path.glob("**/*.css")))
+                is_progress_shown = False
                 for i, file in enumerate(list(build_path.glob("**/*.css"))):
                     # check if the cache is available
                     with open(file, "rb") as frb:
@@ -104,6 +105,7 @@ class TailwindcssMiddleware(BaseMiddleware):
                         + str(file.relative_to(build_path))
                         + "\r"
                     )
+                    is_progress_shown = True
 
                     temp_file = temp_path / (uuid4().hex + ".css")
                     try:
@@ -213,4 +215,7 @@ class TailwindcssMiddleware(BaseMiddleware):
                     except Exception as e:
                         logger.warning("Error while running tailwindcss:")
                         logger.warning(e)
-                stdout.write("\033[KTailwind - done\n")
+                if is_progress_shown:
+                    stdout.write(
+                        "\033[KTailwind - done\n"
+                    )  # to clear the progress
