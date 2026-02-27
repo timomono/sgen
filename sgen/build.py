@@ -26,6 +26,10 @@ def build() -> None:
     sgen_config.BUILD_DIR.mkdir()
     TEMPLATE_EXTS = [".txt", ".text", ".html", ".htm", ".css", ".js", ".php"]
     IGNORE_EXTS = [".scss", ".sass", ".ts"]
+
+    for middleware in sgen_config.MIDDLEWARE:
+        middleware.before(sgen_config.BUILD_DIR)
+
     for file in files:
         if file.is_dir():
             continue
@@ -61,5 +65,9 @@ def build() -> None:
                 sgen_config.RENDERER.render(
                     from_, to, file.relative_to(srcDir)
                 )
+
     for middleware in sgen_config.MIDDLEWARE:
         middleware.do(sgen_config.BUILD_DIR)
+
+    for middleware in sgen_config.MIDDLEWARE:
+        middleware.after(sgen_config.BUILD_DIR)

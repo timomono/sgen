@@ -1,12 +1,13 @@
-from abc import ABC, abstractmethod
 from pathlib import Path
+
+from sgen.components.override_decorator import OverrideStrict
 
 
 class MiddlewareNotUsedError(Exception):
     """Raise when a problem is found during a check"""
 
 
-class BaseMiddleware(ABC):
+class BaseMiddleware(OverrideStrict):
     """Modify files and directory structure during build.
     These operations are allowed:
     - Modifying the folder structure
@@ -24,10 +25,22 @@ class BaseMiddleware(ABC):
     ```
     """
 
-    @abstractmethod
+    def before(self, build_path: Path) -> None:
+        """Called before build.
+        - Modifying the folder structure
+        - Modifying file contents
+        """
+        pass
+
+    def after(self, build_path: Path) -> None:
+        """Called after build.
+        - Modifying the folder structure
+        - Modifying file contents
+        """
+        pass
+
     def do(self, build_path: Path) -> None:
         """Called at build time.
-        These operations are allowed:
         - Modifying the folder structure
         - Modifying file contents
         """
