@@ -76,7 +76,21 @@ class AutoReloadMiddleware(BaseMiddleware):
         super().__init__()
 
     @override
-    def before(self, build_path: Path):
+    def before(self, build_path: Path) -> None:
+        # if not already running, start the SSE server
+        if not AutoReloadMiddleware.isServerRunning:
+            logger.info("starting SSE server for auto reloading")
+            Thread(
+                target=ThreadingHTTPServer(
+                    ("0.0.0.0", 8572), SSEHandler
+                ).serve_forever,
+                daemon=True,
+            ).start()
+            AutoReloadMiddleware.isServerRunning = True
+        return super().before(build_path)
+
+    @override
+    def do(self, build_path: Path):
         is_debug = isinstance(running_command, ListenChange)
         if not is_debug:
             return
@@ -91,17 +105,6 @@ class AutoReloadMiddleware(BaseMiddleware):
             )
             html_file.write_bytes(content)
 
-        # if not already running, start the SSE server
-        if not AutoReloadMiddleware.isServerRunning:
-            logger.info("starting SSE server for auto reloading")
-            Thread(
-                target=ThreadingHTTPServer(
-                    ("0.0.0.0", 8572), SSEHandler
-                ).serve_forever,
-                daemon=True,
-            ).start()
-            AutoReloadMiddleware.isServerRunning = True
-
     @override
     def after(self, build_path: Path) -> None:
-        return super().after(build_path)
+        SSEHandler.broadcast("reload")
