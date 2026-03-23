@@ -30,7 +30,7 @@ Now that the developing server’s running, visit `localhost:8282` with your web
 
 You'll see a simple `Hello world!` page. It worked!
 
-### Make checklist app
+### Create checklist app
 Let's create a simple checklist app.
 #### Create project
 Follow the steps above to create an app named "simple_checklist" and build it, and start the server.
