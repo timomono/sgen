@@ -8,7 +8,7 @@ setup(
     long_description=(Path(__file__).parent / "README.md").read_text(),
     long_description_content_type="text/markdown",
     author="timomono",
-    python_requires=">=3.11 <=3.13",
+    python_requires=">=3.11,<=3.13",
     packages=find_packages(),
     include_package_data=True,
     entry_points={
@@ -18,9 +18,11 @@ setup(
     },
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: BSD-3-Clause license",
+        "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
     ],
+    license="BSD-3-Clause",
+    license_files=["LICENSE"],
     url="https://github.com/timomono/sgen",
     project_urls={
         "Bug Tracker": "https://github.com/timomono/sgen/issues",
