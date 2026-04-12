@@ -8,7 +8,7 @@ setup(
     long_description=(Path(__file__).parent / "README.md").read_text(),
     long_description_content_type="text/markdown",
     author="timomono",
-    python_requires=">=3.11,<=3.14",
+    python_requires=">=3.11,<3.15",
     packages=find_packages(),
     include_package_data=True,
     entry_points={
