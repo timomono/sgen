@@ -52,6 +52,8 @@ const generateUsername = () => "user" + Math.floor(Math.random() * 10000).toStri
         disableButtons();
         const codeElement = document.getElementById("authentication-code");
         const dialogOverlay = document.getElementById("dialog-overlay")
+        const spinner = document.querySelector(".spinner");
+        spinner.classList.remove("hidden");
 
         const checkedMethods = [
             document.getElementById("method-password").checked ? "password" : null,
@@ -64,6 +66,8 @@ const generateUsername = () => "user" + Math.floor(Math.random() * 10000).toStri
             || (checkedMethods.includes("webauthn") && !webAuthn)
         )) {
             alert("Enter missing value(s)");
+            enableButtons();
+            spinner.classList.add("hidden");
             return;
         }
 
@@ -82,8 +86,10 @@ const generateUsername = () => "user" + Math.floor(Math.random() * 10000).toStri
             await hashPasswordWithWorker(dataToHash)
         ); // Increase the cost to try the password like PoW
         codeElement.innerText = code;
+
         enableButtons();
         dialogOverlay.classList.remove("hidden")
+        spinner.classList.add("hidden");
         // sha256()
     }
 
