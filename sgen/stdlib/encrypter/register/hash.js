@@ -1,3 +1,4 @@
+// TODO: The code by ChatGPT, review required
 export async function sha256(str) {
     if (typeof crypto !== 'undefined' && crypto.subtle) {
         const buf = new TextEncoder().encode(str);

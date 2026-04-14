@@ -1,10 +1,28 @@
 import { getFingerprint } from "./fingerprint.js";
 import { createWebAuthn, getWebAuthn } from "./webauthn.js";
 import { sha256 } from "./hash.js";
+import { hashPasswordWithWorker } from "./argon2-worker-caller.js";
+
+const generateUsername = () => "user" + Math.floor(Math.random() * 10000).toString().padStart(4, "0");
 
 (() => {
     let webAuthn;
     let fingerprint;
+
+    const methodsToByte = (methods) => {
+        const methodsMap = {
+            password: 1 << 0, // 00000001
+            webAuthn: 1 << 1, // 00000010
+            fingerprint: 1 << 2, // 00000100
+        };
+
+        let state = 0;
+
+        for (const method of methods) {
+            state |= methodsMap[method];
+        }
+        return state;
+    }
 
     const disableButtons = () => {
         for (const btn of document.getElementsByTagName("button")) {
@@ -30,18 +48,8 @@ import { sha256 } from "./hash.js";
         });
     }
 
-    const registerFingerprint = () => {
-        disableButtons();
-        getFingerprint().then((res) => {
-            fingerprint = res;
-            enableButtons();
-        }).catch(err => {
-            alert("Fingerprint registration failed: " + err);
-            enableButtons();
-        });
-    }
-
     const register = async () => {
+        disableButtons();
         const codeElement = document.getElementById("authentication-code");
         const dialogOverlay = document.getElementById("dialog-overlay")
 
@@ -54,26 +62,32 @@ import { sha256 } from "./hash.js";
         if (checkedMethods.length === 0 || document.getElementById("username").value === "" || (
             (checkedMethods.includes("password") && !document.getElementById("password").value)
             || (checkedMethods.includes("webauthn") && !webAuthn)
-            || (checkedMethods.includes("fingerprint") && !fingerprint)
         )) {
             alert("Enter missing value(s)");
             return;
         }
 
+        if (checkedMethods.includes("fingerprint")) {
+            fingerprint = await getFingerprint();
+        }
+
         const dataToHash = [
+            document.getElementById("username").value,
             checkedMethods.includes("password") ? await sha256(document.getElementById("password").value) : "",
             checkedMethods.includes("webauthn") ? await sha256(webAuthn) : "",
             checkedMethods.includes("fingerprint") ? await sha256(fingerprint) : "",
         ].join('');
 
-        const code = await sha256(dataToHash);
+        const code = methodsToByte(checkedMethods) + await sha256(
+            await hashPasswordWithWorker(dataToHash)
+        ); // Increase the cost to try the password like PoW
         codeElement.innerText = code;
+        enableButtons();
         dialogOverlay.classList.remove("hidden")
         // sha256()
     }
 
     document.getElementById("webauthn").addEventListener("click", registerWebAuthn)
-    document.getElementById("fingerprint").addEventListener("click", registerFingerprint)
     document.getElementById("register").addEventListener("click", register)
 
     const toggle = (checkboxId, boxId) => {
@@ -87,5 +101,7 @@ import { sha256 } from "./hash.js";
 
     toggle("method-password", "password-box");
     toggle("method-webauthn", "webauthn-box");
-    toggle("method-button", "fingerprint-box");
+
+    // Set initial username
+    document.getElementById("username").value = generateUsername();
 })();

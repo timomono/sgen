@@ -214,3 +214,9 @@ button[disabled] {
 .copy-btn:hover {
     background: #357ab8;
 }
+
+.note {
+    color: #555;
+    padding: 0;
+    margin: 0;
+}

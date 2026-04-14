@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auth Demo</title>
+    <title>Register</title>
     <link rel="stylesheet" href="register.css">
 </head>
 
@@ -44,27 +44,30 @@
     <h2>Register</h2>
 
     <!-- Username -->
-    <input type="text" id="username" placeholder="Username">
+    <input type="text" id="username" placeholder="Username" autocomplete="username">
 
     <!-- Password UI -->
-    <label><input type="checkbox" id="method-password"> Password</label>
-    <div id="password-box" class="box hidden">
-        <h4>Password Setup</h4>
-        <input type="password" id="password" placeholder="Password">
+    <div class="box">
+        <label><input type="checkbox" id="method-password"> Password</label>
+        <div id="password-box" class="hidden">
+            <input type="password" id="password" placeholder="Password">
+        </div>
     </div>
 
     <!-- WebAuthn UI -->
-    <label><input type="checkbox" id="method-webauthn"> WebAuthn</label>
-    <div id="webauthn-box" class="box hidden">
-        <h4>WebAuthn</h4>
-        <button id="webauthn">Register WebAuthn</button>
+    <div class="box">
+        <label><input type="checkbox" id="method-webauthn"> WebAuthn</label>
+        <div id="webauthn-box" class="hidden">
+            <button id="webauthn">Register WebAuthn</button>
+        </div>
     </div>
 
     <!-- Fingerprint -->
-    <label><input type="checkbox" id="method-button"> Browser Fingerprint</label>
-    <div id="fingerprint-box" class="box hidden">
-        <h4>Browser Fingerprint</h4>
-        <button id="fingerprint">Register Fingerprint</button>
+    <div class="box">
+        <label><input type="checkbox" id="method-button"> Browser Fingerprint</label>
+        <p class="note">The browser fingerprint may be unstable on some browsers.</p>
+        <div id="fingerprint-box" class="hidden">
+        </div>
     </div>
 
     <button id="register">Register</button>

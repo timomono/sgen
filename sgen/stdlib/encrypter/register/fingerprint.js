@@ -1,3 +1,4 @@
+"use strict";
 import { sha256 } from './hash.js';
 
 function trunc(v, n = 48) {
@@ -36,8 +37,8 @@ async function collectScreen() {
     return [
         row('screen.width', screen.width),
         row('screen.height', screen.height),
-        row('availWidth', screen.availWidth),
-        row('availHeight', screen.availHeight),
+        // row('availWidth', screen.availWidth), // it depends on fullscreen/not
+        // row('availHeight', screen.availHeight),
         row('colorDepth', screen.colorDepth),
         row('pixelDepth', screen.pixelDepth),
         row('devicePixelRatio', window.devicePixelRatio),
@@ -103,31 +104,35 @@ async function collectWebGL() {
 }
 
 async function collectAudio() {
-    // try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
-    const osc = ctx.createOscillator();
-    const analyser = ctx.createAnalyser();
-    const gain = ctx.createGain();
-    gain.gain.value = 0;
-    osc.connect(analyser);
-    analyser.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(0);
-    await new Promise(r => setTimeout(r, 100));
-    const buf = new Float32Array(analyser.frequencyBinCount);
-    analyser.getFloatFrequencyData(buf);
-    osc.stop();
-    ctx.close();
-    const sum = buf.reduce((a, v) => a + Math.abs(v), 0);
-    const hash = await sha256(buf.slice(0, 50).join(','));
-    return [
-        row('sampleRate', ctx.sampleRate),
-        row('channelCount', ctx.destination.channelCount),
-        row('fftSize', analyser.fftSize),
-        row('bufferSum', sum.toFixed(2)),
-        row('audio hash', hash.slice(0, 32)),
-    ];
-    // } catch (e) { return [row('audio', 'blocked')]; }
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+        const osc = ctx.createOscillator();
+        const analyser = ctx.createAnalyser();
+        analyser.smoothingTimeConstant = 0;
+        analyser.fftSize = 2048;
+        const gain = ctx.createGain();
+        gain.gain.value = 0;
+        osc.connect(analyser);
+        analyser.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(0);
+        const buf = new Float32Array(analyser.frequencyBinCount);
+        for (let i = 0; i < 5; i++) {
+            analyser.getFloatFrequencyData(buf);
+        }
+        const quantized = buf.slice(0, 50).map(v => Math.round(v * 100))
+        osc.stop();
+        ctx.close();
+        const sum = buf.reduce((a, v) => a + Math.abs(v), 0);
+        const hash = await sha256(buf.slice(0, 50).join(','));
+        return [
+            row('sampleRate', ctx.sampleRate),
+            row('channelCount', ctx.destination.channelCount),
+            row('fftSize', analyser.fftSize),
+            row('bufferSum', sum.toFixed(2)),
+            row('audio hash', hash.slice(0, 32)),
+        ];
+    } catch (e) { return [row('audio', 'blocked')]; }
 }
 
 async function collectFonts() {
