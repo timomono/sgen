@@ -2,6 +2,7 @@ import { getFingerprint } from "./fingerprint.js";
 import { createWebAuthn, getWebAuthn } from "./webauthn.js";
 import { sha256 } from "./hash.js";
 import { hashPasswordWithWorker } from "./argon2-worker-caller.js";
+import { hashPassword } from "./argon2.js"; // remove later
 
 const generateUsername = () => "user" + Math.floor(Math.random() * 10000).toString().padStart(4, "0");
 

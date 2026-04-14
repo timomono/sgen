@@ -1,4 +1,4 @@
-export function hashPasswordWithWorker(password, opts = {}, salt) {
+export function hashPasswordWithWorker(password) {
     return new Promise((resolve, reject) => {
         if (window.Worker) {
             const worker = new Worker(
@@ -8,7 +8,7 @@ export function hashPasswordWithWorker(password, opts = {}, salt) {
 
             worker.postMessage({
                 name: "hashPassword",
-                args: [password, opts, salt],
+                args: [password],
             });
 
             worker.onmessage = (m) => {
@@ -33,7 +33,7 @@ export function hashPasswordWithWorker(password, opts = {}, salt) {
                 reject(e);
             };
         } else {
-            hashPassword(password, opts, salt)
+            hashPassword(password)
                 .then(resolve)
                 .catch(reject);
         }
