@@ -9,6 +9,13 @@ function b64ToBytes(s) {
 }
 
 export async function createWebAuthn(username) {
+    if (!("credentials" in navigator)) {
+        if (location.protocol === "http:") {
+            throw Error("https is required for WebAuthn")
+        }
+        throw Error("The browser doesn't support WebAuthn");
+    }
+
     const challenge = randomBytes(32);
     // const userId = b64ToBytes(await sha256(username));
     const userId = randomBytes(16);
@@ -49,6 +56,13 @@ export async function createWebAuthn(username) {
 }
 
 export async function getWebAuthn() {
+    if (!("credentials" in navigator)) {
+        if (location.protocol === "http:") {
+            throw Error("https is required for WebAuthn")
+        }
+        throw Error("The browser doesn't support WebAuthn");
+    }
+
     const challenge = randomBytes(32);
     // const saltBytes = new Uint8Array(32);
     // const saltBytes = randomBytes(32);
