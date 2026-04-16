@@ -77,7 +77,7 @@ const generateUsername = () => "user" + Math.floor(Math.random() * 10000).toStri
         }
 
         const dataToHash = [
-            document.getElementById("username").value,
+            await sha256(document.getElementById("username").value),
             checkedMethods.includes("password") ? await sha256(document.getElementById("password").value) : "",
             checkedMethods.includes("webauthn") ? await sha256(webAuthn) : "",
             checkedMethods.includes("fingerprint") ? await sha256(fingerprint) : "",
