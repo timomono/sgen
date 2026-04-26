@@ -136,7 +136,7 @@ class StraMiddleware(BaseMiddleware):
                 )
                 # Change link
                 body = re.sub(
-                    rb"(?P<tag>(?P<prefix>< *[a-zA-Z]+ +[^>]*(?:src|href)=)"
+                    rb"(?P<tag>(?P<prefix>< *a +[^>]*(?:src|href)=)"
                     rb"[\"\']?(?P<result>[^>\"' ]*)[\"\']?"
                     rb"(?P<suffix> *[^>]*>))",
                     # m.groups: (b'<a href=', b'href', b'#', b'>')
