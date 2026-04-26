@@ -89,14 +89,18 @@ class StraMiddleware(BaseMiddleware):
         localesStr = (
             "[" + ",".join(map(lambda s: f'"{s.upper()}"', locales)) + "]"
         )
-        with open(build_path / "index.html", "w") as f:
+        with open(build_path / "redirect_locale.html", "w") as f:
             f.write(localeRedirectIndex(localesStr, self.config))
 
         if locales == []:
             raise NoLangFoundException(self.config)
 
         for locale in locales:
-            buildLocale_dir = build_path / locale
+            buildLocale_dir = (
+                build_path  # Locate the default language version of the site at root for SEO
+                if locale == self.config.default_lang
+                else build_path / locale
+            )
             if not buildLocale_dir.exists():
                 buildLocale_dir.mkdir()
 
@@ -182,6 +186,7 @@ def change_to_localized_link(
         or (ext not in config.localize_file and ext is not None)
         or (result.startswith("#"))
         or result.startswith("data:")
+        or locale == config.default_lang
     ):
         return tag
 
@@ -276,7 +281,7 @@ def localeRedirectIndex(localesStr: str, config: StraConfig) -> str:
     <script>
     const lang = navigator.languages.map(
         (e) => e.toUpperCase()).map((lang) => {{
-        console.log({localesStr});console.log(lang);
+        console.log({localesStr});
             for (const spLang of {localesStr}){{
                 if (lang.toUpperCase().includes(spLang)){{return spLang}}
             }}
@@ -284,10 +289,11 @@ def localeRedirectIndex(localesStr: str, config: StraConfig) -> str:
         }}
     )[0];
     console.log(lang);
-    if (lang == undefined){{
-        location.href = "{config.default_lang}"
+    if (lang == undefined || lang == "{config.default_lang.upper()}"){{
+        location.href = "/"
+    }} else {{
+        location.href = "/" + lang.toLowerCase() + "/";
     }}
-    location.href = "./" + lang.toLowerCase() + "/";
     </script>
 </body>
 </html>
