@@ -3,7 +3,7 @@ from pathlib import Path
 
 setup(
     name="sgen-tool",
-    version="1.0.0",
+    version="1.0.1",
     description="Simple Python-based static site generator",
     long_description=(Path(__file__).parent / "README.md").read_text(),
     long_description_content_type="text/markdown",
