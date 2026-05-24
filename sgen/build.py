@@ -13,6 +13,7 @@ RE_IGNORE_COMMENTS = re.compile(
 def build() -> None:
     srcDir = sgen_config.SRC_DIR
     files = srcDir.glob("**/*")
+    middleware_list = sgen_config.MIDDLEWARE
     if sgen_config.BUILD_DIR.exists():
         logger.debug("Build directory already exists. Removing...")
         if sys.version_info >= (3, 12):
@@ -27,7 +28,7 @@ def build() -> None:
     TEMPLATE_EXTS = [".txt", ".text", ".html", ".htm", ".css", ".js", ".php"]
     IGNORE_EXTS = [".scss", ".sass", ".ts"]
 
-    for middleware in sgen_config.MIDDLEWARE:
+    for middleware in middleware_list:
         middleware.before(sgen_config.BUILD_DIR)
 
     for file in files:
@@ -66,8 +67,8 @@ def build() -> None:
                     from_, to, file.relative_to(srcDir)
                 )
 
-    for middleware in sgen_config.MIDDLEWARE:
+    for middleware in middleware_list:
         middleware.do(sgen_config.BUILD_DIR)
 
-    for middleware in sgen_config.MIDDLEWARE:
+    for middleware in middleware_list:
         middleware.after(sgen_config.BUILD_DIR)

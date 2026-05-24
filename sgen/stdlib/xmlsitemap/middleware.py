@@ -5,7 +5,6 @@ from sgen.components.override_decorator import override
 from sgen.base_middleware import BaseMiddleware
 import xml.etree.ElementTree as ET
 
-
 IGNORE_NAME_LIST = [".DS_Store", "__pycache__"]
 
 
@@ -23,6 +22,7 @@ class XMLSitemapMiddleware(BaseMiddleware):
             for p in build_path.glob("**/*.html")
             if p.name not in ("404.html",)
         }
+        path_list = sorted(path_list)
         rel_path_list: list[Path] = list(
             map(lambda e: e.relative_to(build_path), path_list)
         )
