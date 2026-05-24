@@ -30,8 +30,7 @@ Now that the developing server’s running, visit `localhost:8282` with your web
 
 You'll see a simple `Hello world!` page. It worked!
 
-### Create checklist app
-Let's create a simple checklist app.
+### Tutorial: Simple checklist app
 #### Create project
 Follow the steps above to create an app named "simple_checklist" and build it, and start the server.
 #### Write template
@@ -101,7 +100,6 @@ Open `simple_checklist/src/(file name)` in your favorite editor and copy and pas
 ```html
 {% from sgen.stdlib.pyrender.avoid_escape import AvoidEscape %}
 {{ include("base.html", 
-    ```
     title="Favorite animal",
         heading="Animal",
         body=AvoidEscape(f"""
@@ -116,7 +114,6 @@ Open `simple_checklist/src/(file name)` in your favorite editor and copy and pas
         </select>
         """)
     ) }}
-    ```
 ```
 A dropdown menu will appear.
 
