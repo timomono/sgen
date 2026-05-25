@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="register.css">
+</head>
+
+<body>
+    <div class="dialog-overlay hidden" id="dialog-overlay">
+        <div class="dialog">
+            <div class="dialog-header">Complete</div>
+            <div class="dialog-content">
+                <p>
+                    <b>WARNING: KEEP THE CODE SECRET</b>
+                </p>
+                <p>
+                    Here is your authentication code:
+                </p>
+                <div class="copy-container">
+                    <textarea id="authentication-code" readonly></textarea>
+                    <button class="copy-btn" onclick="copyText()">Copy</button>
+                </div>
+
+                <script>
+                    const copyText = () => {
+                        const textarea = document.querySelector(".copy-container textarea");
+                        const value = textarea.value;
+                        navigator.clipboard.writeText(value);
+                    };
+                </script>
+            </div>
+            <div class="dialog-actions">
+                <button class="dialog-btn dialog-btn-primary"
+                    onclick="document.querySelector('#dialog-overlay').classList.add('hidden')">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <h2>Register</h2>
+
+    <!-- Username -->
+    <input type="text" id="username" placeholder="Username" autocomplete="username">
+
+    <!-- Password UI -->
+    <div class="box">
+        <label><input type="checkbox" id="method-password"> Password</label>
+        <div id="password-box" class="hidden">
+            <input type="password" id="password" placeholder="Password">
+        </div>
+    </div>
+
+    <!-- WebAuthn UI -->
+    <div class="box">
+        <label><input type="checkbox" id="method-webauthn"> WebAuthn</label>
+        <div id="webauthn-box" class="hidden">
+            <button id="webauthn">Register WebAuthn</button>
+        </div>
+    </div>
+
+    <!-- Fingerprint -->
+    <div class="box">
+        <label><input type="checkbox" id="method-button"> Browser Fingerprint</label>
+        <p class="note">The browser fingerprint may be unstable on some browsers.</p>
+        <div id="fingerprint-box" class="hidden">
+        </div>
+    </div>
+
+    <button id="register">
+        <span class="spinner hidden"></span>
+        <span class="btn-text">Register</span>
+    </button>
+
+    <script type="module" src="./register.js"></script>
+</body>
+
+</html>
