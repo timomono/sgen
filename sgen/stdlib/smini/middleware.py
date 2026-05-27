@@ -35,7 +35,7 @@ class SminiMiddleware(BaseMiddleware):
         super().__init__()
 
     @override
-    def do(self, build_path: Path):
+    def after(self, build_path: Path):
         from sgen.get_config import sgen_config
 
         if self.except_debug and sgen_config.DEBUG:

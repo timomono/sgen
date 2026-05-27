@@ -35,8 +35,8 @@ class HashedFilenameMiddleware(BaseMiddleware):
                         "0123456789abcdefghijklmnopqrstuvwxyz",
                     )
                 hash_path = file.parent / ((file_hash[:8]) + file.suffix)
-                self.hash_map[file.relative_to(build_path)] = (
-                    hash_path.relative_to(build_path)
+                self.hash_map[file.relative_to(build_path)] = hash_path.relative_to(
+                    build_path
                 )
                 file.rename(hash_path)
 
@@ -50,25 +50,22 @@ class HashedFilenameMiddleware(BaseMiddleware):
             if file.suffix == ".html":
 
                 def repl(match: re.Match):
-                    prefix: bytes = match.group(
-                        "prefix_script"
-                    ) or match.group("prefix_link")
-                    path: bytes = match.group("path_script") or match.group(
-                        "path_link"
+                    prefix: bytes = match.group("prefix_script") or match.group(
+                        "prefix_link"
                     )
-                    suffix: bytes = match.group(
-                        "suffix_script"
-                    ) or match.group("suffix_link")
+                    path: bytes = match.group("path_script") or match.group("path_link")
+                    suffix: bytes = match.group("suffix_script") or match.group(
+                        "suffix_link"
+                    )
                     if path.startswith(b"//") or path.startswith(b"http"):
                         return prefix + path + suffix
 
                     path_str = path.decode("utf-8")
 
-                    html_dir = file.parent.relative_to(build_path)
                     if path_str.startswith("/"):
                         absolute_path = sgen_config.BUILD_DIR / path_str[1:]
                     else:
-                        absolute_path = (html_dir / path_str).resolve()
+                        absolute_path = (file.parent / path_str).resolve()
                     print(absolute_path)
                     try:
                         relative_to_build = absolute_path.relative_to(
@@ -81,13 +78,11 @@ class HashedFilenameMiddleware(BaseMiddleware):
                         hashed_path = self.hash_map[relative_to_build]
 
                         html_dir_abs = file.parent.resolve()
-                        hashed_abs = (
-                            build_path.resolve() / hashed_path
-                        ).resolve()
+                        hashed_abs = (build_path.resolve() / hashed_path).resolve()
 
-                        rel = os.path.relpath(
-                            hashed_abs, html_dir_abs
-                        ).replace("\\", "/")
+                        rel = os.path.relpath(hashed_abs, html_dir_abs).replace(
+                            "\\", "/"
+                        )
 
                         return prefix + rel.encode("utf-8") + suffix
                     else:
@@ -98,6 +93,4 @@ class HashedFilenameMiddleware(BaseMiddleware):
                             + path.decode(),
                         )
 
-                file.write_bytes(
-                    self.script_and_style.sub(repl, file.read_bytes())
-                )
+                file.write_bytes(self.script_and_style.sub(repl, file.read_bytes()))
