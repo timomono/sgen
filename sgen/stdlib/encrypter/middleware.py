@@ -39,8 +39,8 @@ class EncrypterMiddleware(BaseMiddleware):
     @override
     def do(self, build_path: Path) -> None:
         # Register
-        template_dir = Path(__file__).parent / "register"
-        target_dir = build_path / "_encrypter" / "register"
+        template_dir = Path(__file__).parent / "template"
+        target_dir = build_path / "_encrypter"
 
         if target_dir.exists():
             raise FileExistsError(
@@ -69,7 +69,7 @@ class EncrypterMiddleware(BaseMiddleware):
             encrypted_relative_path = encrypt(str(original_relative_path).encode(), b"m" * 32)
             encrypted_path = encrypted_dir / encode_bytes_to_base_n(
                 encrypted_relative_path, 38, 
-                "0123456789abcdefghijklmnopqrstuvwxyz-_"
+                "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_"
                 )
             encrypted_path.parent.mkdir(parents=True, exist_ok=True)
             body = file.read_bytes()
