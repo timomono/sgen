@@ -3,7 +3,7 @@ import { getFingerprint } from "./_encrypter/components/fingerprint.js";
 import { createWebAuthn, getWebAuthn } from "./_encrypter/components/webauthn.js";
 import { sha256 } from "./_encrypter/components/hash.js";
 import { hashPasswordWithWorker } from "./_encrypter/components/argon2-worker-caller.js";
-import { hashPassword } from "../_encrypter/components/argon2.js";
+// import { hashPassword } from "../_encrypter/components/argon2.js";
 
 const byteToMethods = (byte) => {
     const methodsMap = {
@@ -37,6 +37,7 @@ const main = () => {
     const auth_form = document.getElementById("auth_form");
     const password_form = document.getElementById("password_form");
 
+    const next_spinner = document.getElementById("next_spinner");
     const auth_spinner = document.getElementById("auth_spinner");
 
     auth_form.addEventListener("submit", async (e) => {
@@ -45,6 +46,10 @@ const main = () => {
             username_error.innerText = "The username is empty."
             return;
         }
+
+        // Spinner
+        next_btn.disabled = true;
+        next_spinner.classList.remove("hidden")
 
         // Get the auth method for this username
         let fetched_data;
