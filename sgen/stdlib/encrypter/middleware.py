@@ -33,7 +33,7 @@ print(encrypt(b"Hello from Python!", b"m" * 32))
 
 class EncrypterMiddleware(BaseMiddleware):
     @override
-    def __init__(self, keys) -> None:
+    def __init__(self, keys: list[str] | None) -> None:
         self.keys = keys
         super().__init__()
 
@@ -51,6 +51,8 @@ class EncrypterMiddleware(BaseMiddleware):
 
     @override    
     def after(self, build_path: Path) -> None:
+        if self.keys is None:
+            return # Do not encrypt if the keys not set
         # Encrypt
         encrypted_dir = build_path / "_encrypted"
         files = build_path.glob("*/**")

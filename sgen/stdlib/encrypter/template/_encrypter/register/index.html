@@ -49,6 +49,9 @@
     <!-- Password UI -->
     <div class="box">
         <label><input type="checkbox" id="method-password"> Password</label>
+        <p class="description">
+            Simple way to auth. It may be dangerous with unsafe password.
+        </p>
         <div id="password-box" class="hidden">
             <input type="password" id="password" placeholder="Password">
         </div>
@@ -57,6 +60,9 @@
     <!-- WebAuthn UI -->
     <div class="box">
         <label><input type="checkbox" id="method-webauthn"> WebAuthn</label>
+        <p class="description">
+            Safest way to auth.
+        </p>
         <div id="webauthn-box" class="hidden">
             <button id="webauthn">Register WebAuthn</button>
         </div>
@@ -65,6 +71,9 @@
     <!-- Fingerprint -->
     <div class="box">
         <label><input type="checkbox" id="method-button"> Browser Fingerprint</label>
+        <p class="description">
+            Use browser's fingerprint. Use with another method for security.
+        </p>
         <p class="note">The browser fingerprint may be unstable on some browsers.</p>
         <div id="fingerprint-box" class="hidden">
         </div>

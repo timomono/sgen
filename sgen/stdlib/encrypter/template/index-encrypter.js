@@ -3,7 +3,7 @@ import { getFingerprint } from "./_encrypter/components/fingerprint.js";
 import { createWebAuthn, getWebAuthn } from "./_encrypter/components/webauthn.js";
 import { sha256 } from "./_encrypter/components/hash.js";
 import { hashPasswordWithWorker } from "./_encrypter/components/argon2-worker-caller.js";
-// import { hashPassword } from "../_encrypter/components/argon2.js";
+import { hashPassword } from "../_encrypter/components/argon2.js";
 
 const byteToMethods = (byte) => {
     const methodsMap = {
