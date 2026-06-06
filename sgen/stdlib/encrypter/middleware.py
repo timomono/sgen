@@ -33,7 +33,8 @@ print(encrypt(b"Hello from Python!", b"m" * 32))
 
 class EncrypterMiddleware(BaseMiddleware):
     @override
-    def __init__(self) -> None:
+    def __init__(self, keys) -> None:
+        self.keys = keys
         super().__init__()
 
     @override
@@ -72,7 +73,7 @@ class EncrypterMiddleware(BaseMiddleware):
             with open(encrypted_path, "wb") as f:
                 f.write(encrypt(body, b"m" * 32))
 
-        SKIP_PATHS = ["_encrypter", "_encrypted", "index-encrypter.html", "index-encrypter.css"]
+        SKIP_PATHS = ["_encrypter", "_encrypted", "index-encrypter.html", "index-encrypter.css", "index-encrypter.js"]
         build_glob = list(build_path.glob("*"))
         for path in build_glob:
             if path.name in SKIP_PATHS:
@@ -84,4 +85,7 @@ class EncrypterMiddleware(BaseMiddleware):
                 path
             )
         (build_path / "index-encrypter.html").rename(build_path /"index.html")
+
+        # Save encrypted keys
+        (build_path / "keys").write_text("\n".join(self.keys))
         return super().after(build_path)

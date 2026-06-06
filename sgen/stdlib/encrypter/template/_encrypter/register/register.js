@@ -83,9 +83,11 @@ const generateUsername = () => "user" + Math.floor(Math.random() * 10000).toStri
             checkedMethods.includes("fingerprint") ? await sha256(fingerprint) : "",
         ].join('');
 
-        const code = methodsToByte(checkedMethods) + await sha256(
-            await hashPasswordWithWorker(dataToHash)
-        ); // Increase the cost to try the password like PoW
+        const code = methodsToByte(checkedMethods)
+            + await sha256(document.getElementById("username").value)
+            + await sha256(
+                await hashPasswordWithWorker(dataToHash)
+            ); // Increase the cost to try the password like PoW
         codeElement.innerText = code;
 
         enableButtons();
