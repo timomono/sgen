@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Required</title>
+    <link rel="stylesheet" href="index-encrypter.css">
+    <script src="index-encrypter.js"></script>
+</head>
+
+<body>
+    <!-- Page: username input -->
+    <div class="page" id="auth_page">
+        <form action="#" id="auth_form">
+            <h1>Authorization</h1>
+            <label>
+                <h2>Username</h2>
+                <input type="text" placeholder="John Doe" id="username" autocomplete="username">
+                <div class=" error" id="username_error">
+                </div>
+            </label>
+            <button id="next_btn" type="submit">Next</button>
+        </form>
+    </div>
+
+    <!-- Page: password input -->
+    <div class="page hidden" id="password_page">
+        <form action="#" id="password_form">
+            <h1>Password</h1>
+            <label>
+                <h2>Password</h2>
+                <input type="password" placeholder="password1234" id="password">
+                <div class="error" id="password_error"></div>
+            </label>
+            <button id="auth_btn" type="submit">
+                <div class="spinner hidden" id="auth_spinner"></div>
+                Authorize
+            </button>
+        </form>
+    </div>
+</body>
+
+</html>

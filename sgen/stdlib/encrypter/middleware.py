@@ -40,19 +40,15 @@ class EncrypterMiddleware(BaseMiddleware):
     def do(self, build_path: Path) -> None:
         # Register
         template_dir = Path(__file__).parent / "template"
-        target_dir = build_path / "_encrypter"
-
-        if target_dir.exists():
-            raise FileExistsError(
-                "Directory '_encrypter/register' already exists"
-            )
+        target_dir = build_path
 
         target_dir.parent.mkdir(parents=True, exist_ok=True)
 
-        shutil.copytree(template_dir, target_dir)
+        shutil.copytree(template_dir, target_dir, dirs_exist_ok=True)
 
         return super().do(build_path)
-    
+
+    @override    
     def after(self, build_path: Path) -> None:
         # Encrypt
         encrypted_dir = build_path / "_encrypted"
@@ -76,7 +72,7 @@ class EncrypterMiddleware(BaseMiddleware):
             with open(encrypted_path, "wb") as f:
                 f.write(encrypt(body, b"m" * 32))
 
-        SKIP_PATHS = ["_encrypter", "_encrypted"]
+        SKIP_PATHS = ["_encrypter", "_encrypted", "index-encrypter.html", "index-encrypter.css"]
         build_glob = list(build_path.glob("*"))
         for path in build_glob:
             if path.name in SKIP_PATHS:
@@ -87,4 +83,5 @@ class EncrypterMiddleware(BaseMiddleware):
             shutil.rmtree(
                 path
             )
+        (build_path / "index-encrypter.html").rename(build_path /"index.html")
         return super().after(build_path)
