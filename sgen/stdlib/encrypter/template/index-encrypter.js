@@ -3,7 +3,7 @@ import { getFingerprint } from "./_encrypter/components/fingerprint.js";
 import { createWebAuthn, getWebAuthn } from "./_encrypter/components/webauthn.js";
 import { sha256 } from "./_encrypter/components/hash.js";
 import { hashPasswordWithWorker } from "./_encrypter/components/argon2-worker-caller.js";
-// import { hashPassword } from "../_encrypter/components/argon2.js";
+import { hashPassword } from "../_encrypter/components/argon2.js";
 
 const byteToMethods = (byte) => {
     const methodsMap = {
@@ -15,7 +15,7 @@ const byteToMethods = (byte) => {
     const methods = [];
     for (const method of Object.keys(methodsMap)) {
         const mask = methodsMap[method];
-        if (methods & mask !== 0) { //The method is included
+        if ((byte & mask) !== 0) { //The method is included
             methods.push(method)
         }
     }
@@ -96,15 +96,61 @@ const main = () => {
         }
 
         const encrypted_key = match_keys[0];
+        console.log(encrypted_key)
         const auth_method = byteToMethods(parseInt(encrypted_key[0], 16));
+        window.auth_method = auth_method;
 
-        // Next page
-        auth_page.classList.add("hidden")
-        password_page.classList.remove("hidden");
-        history.pushState("", "", "")
+        console.log(auth_method)
+        if (auth_method.includes("password")) {
+            // Store for password page
+            window.encrypted_key = encrypted_key;
+            window.webAuthn = null;
+            window.fingerprint = null;
+
+            if (auth_method.includes("webAuthn")) {
+                window.webAuthn = await getWebAuthn();
+            }
+            if (auth_method.includes("fingerprint")) {
+                window.fingerprint = await getFingerprint();
+            }
+
+            // Next page
+            auth_page.classList.add("hidden")
+            password_page.classList.remove("hidden");
+            history.pushState("", "", "")
+        } else {
+            // WebAuthn/Fingerprint only - verify immediately
+            let webAuthn;
+            if (auth_method.includes("webAuthn")) {
+                webAuthn = await getWebAuthn();
+            }
+            let fingerprint;
+            if (auth_method.includes("fingerprint")) {
+                fingerprint = await getFingerprint();
+            }
+
+            const key_salt_hex = encrypted_key.slice(129, 193); // 32 bytes as hex (64 chars)
+            const key_hash = encrypted_key.slice(193); // rest is the hash
+            const username_salt = encrypted_key.slice(1, 65);
+            const username_salt_bytes = String.fromCharCode(...new Uint8Array(username_salt.match(/.{1,2}/g).map(b => parseInt(b, 16))));
+
+            const dataToHash = [
+                await sha256(username_salt_bytes + username_field.value),
+                "",
+                auth_method.includes("webAuthn") ? await sha256(JSON.stringify(webAuthn)) : "",
+                auth_method.includes("fingerprint") ? await sha256(JSON.stringify(fingerprint)) : "",
+            ].join('');
+
+            const computed_hash = await sha256(await hashPasswordWithWorker(dataToHash));
+            if (computed_hash === key_hash) {
+                password_error.innerText = "Authentication successful!";
+            } else {
+                password_error.innerText = "Authentication failed";
+            }
+        }
     })
 
-    password_form.addEventListener("submit", (e) => {
+    password_form.addEventListener("submit", async (e) => {
         e.preventDefault()
         if (password_field.value.replace(" ", "") === "") {
             password_error.innerText = "The password is empty."
@@ -113,7 +159,42 @@ const main = () => {
 
         auth_btn.disabled = true;
         auth_spinner.classList.remove("hidden")
-        // indexedDB.open("session").transaction("sessionKey", "")
+
+        try {
+            const encrypted_key = window.encrypted_key;
+            const auth_method = window.auth_method;
+            const username_salt = encrypted_key.slice(1, 65);
+            const key_salt = new Uint8Array(encrypted_key.slice(129, 161).match(/.{1,2}/g).map(b => parseInt(b, 16)));
+            const key_hash = encrypted_key.slice(193);
+
+            const username_salt_bytes = String.fromCharCode(...new Uint8Array(username_salt.match(/.{1,2}/g).map(b => parseInt(b, 16))));
+
+            const dataToHash = [
+                await sha256(username_salt_bytes + username_field.value),
+                await sha256(password_field.value),
+                auth_method.includes("webAuthn") ? await sha256(JSON.stringify(window.webAuthn)) : "",
+                auth_method.includes("fingerprint") ? await sha256(JSON.stringify(window.fingerprint)) : "",
+            ].join('');
+
+            const computed_hash = await hashPasswordWithWorker(
+                dataToHash,
+                key_salt
+            );
+
+            if (computed_hash === key_hash) {
+                password_error.innerText = "Login successful!";
+                password_error.style.color = "#4a90e2";
+            } else {
+                password_error.innerText = "Invalid password";
+                password_error.style.color = "#e74c3c";
+            }
+        } catch (err) {
+            password_error.innerText = `Error: ${err.message}`;
+            password_error.style.color = "#e74c3c";
+        } finally {
+            auth_btn.disabled = false;
+            auth_spinner.classList.add("hidden")
+        }
     })
 }
 

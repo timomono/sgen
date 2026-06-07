@@ -1,4 +1,4 @@
-export function hashPasswordWithWorker(password) {
+export function hashPasswordWithWorker(password, salt) {
     return new Promise((resolve, reject) => {
         if (window.Worker) {
             const worker = new Worker(
@@ -8,7 +8,7 @@ export function hashPasswordWithWorker(password) {
 
             worker.postMessage({
                 name: "hashPassword",
-                args: [password],
+                args: [password, salt],
             });
 
             worker.onmessage = (m) => {

@@ -58,13 +58,13 @@ const generateUsername = () => "user" + Math.floor(Math.random() * 10000).toStri
 
         const checkedMethods = [
             document.getElementById("method-password").checked ? "password" : null,
-            document.getElementById("method-webauthn").checked ? "webauthn" : null,
+            document.getElementById("method-webauthn").checked ? "webAuthn" : null,
             document.getElementById("method-button").checked ? "fingerprint" : null,
         ].filter(Boolean);
 
         if (checkedMethods.length === 0 || document.getElementById("username").value === "" || (
             (checkedMethods.includes("password") && !document.getElementById("password").value)
-            || (checkedMethods.includes("webauthn") && !webAuthn)
+            || (checkedMethods.includes("webAuthn") && !webAuthn)
         )) {
             alert("Enter missing value(s)");
             enableButtons();
@@ -84,28 +84,32 @@ const generateUsername = () => "user" + Math.floor(Math.random() * 10000).toStri
             .map(b => b.toString(16).padStart(2, '0'))
             .join('');
 
-        const key_salt = new Uint8Array(32);
-        crypto.getRandomValues(key_salt);
-        const hex_key_salt = Array.from(key_salt)
-            .map(b => b.toString(16).padStart(2, '0'))
-            .join('');
+        // const key_salt = new Uint8Array(32);
+        // crypto.getRandomValues(key_salt);
+        // const hex_key_salt = Array.from(key_salt)
+        //     .map(b => b.toString(16).padStart(2, '0'))
+        //     .join('');
 
 
         const dataToHash = [
-            String.fromCharCode(...username_salt),
-            await sha256(document.getElementById("username").value),
+            await sha256(String.fromCharCode(...username_salt) + document.getElementById("username").value),
             checkedMethods.includes("password") ? await sha256(document.getElementById("password").value) : "",
-            checkedMethods.includes("webauthn") ? await sha256(webAuthn) : "",
+            checkedMethods.includes("webAuthn") ? await sha256(webAuthn) : "",
             checkedMethods.includes("fingerprint") ? await sha256(fingerprint) : "",
         ].join('');
+
+        const keyHash = await hashPasswordWithWorker(dataToHash);
 
         const code = methodsToByte(checkedMethods)
             + hex_username_salt
             + await sha256(String.fromCharCode(...username_salt) + document.getElementById("username").value)
-            + hex_key_salt
-            + await sha256(
-                await hashPasswordWithWorker(dataToHash)
-            ); // Increase the cost to try the password like PoW
+            + Array.from(keyHash.salt)
+                .map(byte => byte.toString(16).padStart(2, '0'))
+                .join('') // IMPORTANT: 32bytes
+            + Array.from(keyHash.key)
+                .map(byte => byte.toString(16).padStart(2, '0'))
+                .join(''); // hex
+
         codeElement.innerText = code;
 
         enableButtons();

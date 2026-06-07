@@ -4,10 +4,10 @@ import sodium from "https://cdn.jsdelivr.net/npm/libsodium-wrappers-sumo@0.8.3/+
 (async () => {
     await sodium.ready;
 })()
-export async function hashPassword(password) {
+export async function hashPassword(password, salt) {
     await sodium.ready;
 
-    const salt = sodium.randombytes_buf(sodium.crypto_pwhash_SALTBYTES);
+    salt ??= sodium.randombytes_buf(sodium.crypto_pwhash_SALTBYTES);
     const key = sodium.crypto_pwhash(
         32, // dkLen
         password,
