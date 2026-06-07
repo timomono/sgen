@@ -57,28 +57,41 @@ const main = () => {
             fetched_data = await fetch("/keys");
         } catch (e) {
             username_error.innerText = `Fetch failed: ${e}`
+            next_btn.disabled = false;
+            next_spinner.classList.add("hidden")
             return;
         }
         if (!fetched_data.ok) {
             username_error.innerText = `HTTP Error: ${fetched_data.status} ${fetched_data.statusText}`
+            next_btn.disabled = false;
+            next_spinner.classList.add("hidden")
             return;
         }
         const raw_keys = await fetched_data.text();
         const keys = raw_keys.split("\n");
-        const match_keys = keys.filter(s => {
-            const username_hash = s.slice(1, 65);
-            if (sha256(username_field.value) === username_hash) {
-                return true
+
+        const match_keys = [];
+        for (const s of keys) {
+            if (s === "") continue;
+            const username_salt = s.slice(1, 65);
+            const username_hash = s.slice(65, 129);
+            const username_salt_bytes = String.fromCharCode(...new Uint8Array(username_salt.match(/.{1,2}/g).map(b => parseInt(b, 16))));
+            const computed_hash = await sha256(username_salt_bytes + username_field.value);
+            if (computed_hash === username_hash) {
+                match_keys.push(s);
             }
-            return false;
-        })
+        }
 
         if (match_keys.length === 0) {
             username_error.innerText = "The user not found."
+            next_btn.disabled = false;
+            next_spinner.classList.add("hidden")
             return;
         }
         if (match_keys.length > 1) {
             username_error.innerText = "Multiple users with same username"
+            next_btn.disabled = false;
+            next_spinner.classList.add("hidden")
             return;
         }
 

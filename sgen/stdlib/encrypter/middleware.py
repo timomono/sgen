@@ -5,7 +5,10 @@ from sgen.base_middleware import BaseMiddleware
 from sgen.components.base_num import encode_base_n, encode_bytes_to_base_n
 from sgen.components.override_decorator import override
 
-import os, base64
+import os
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 try:
     from cryptography.hazmat.primitives.kdf.argon2 import Argon2id
@@ -57,6 +60,8 @@ class EncrypterMiddleware(BaseMiddleware):
         encrypted_dir = build_path / "_encrypted"
         files = build_path.glob("*/**")
 
+
+        encryptKey = os.urandom(32)
         for file in files:
             ENCRYPTER_DIR = build_path / "_encrypter"
             if file.is_relative_to(ENCRYPTER_DIR):
@@ -73,7 +78,7 @@ class EncrypterMiddleware(BaseMiddleware):
             encrypted_path.parent.mkdir(parents=True, exist_ok=True)
             body = file.read_bytes()
             with open(encrypted_path, "wb") as f:
-                f.write(encrypt(body, b"m" * 32))
+                f.write(encrypt(body, encryptKey))
 
         SKIP_PATHS = ["_encrypter", "_encrypted", "index-encrypter.html", "index-encrypter.css", "index-encrypter.js"]
         build_glob = list(build_path.glob("*"))
@@ -89,5 +94,31 @@ class EncrypterMiddleware(BaseMiddleware):
         (build_path / "index-encrypter.html").rename(build_path /"index.html")
 
         # Save encrypted keys
-        (build_path / "keys").write_text("\n".join(self.keys))
+        keys_to_save = ""
+        for raw_key in self.keys:
+            METHOD_LENGTH = 1 # bytes
+            USERNAME_SALT_LENGTH = 64
+            USERNAME_HASH_LENGTH = 64
+            KEY_SALT_LENGTH = 64
+            KEY_LENGTH = 64
+
+            method = raw_key[0] 
+            username_salt = raw_key[
+                METHOD_LENGTH:
+                METHOD_LENGTH + USERNAME_SALT_LENGTH
+                ]
+            username_hash = raw_key[
+                METHOD_LENGTH + USERNAME_SALT_LENGTH:
+                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + 1
+                ]
+            salt_key = raw_key[
+                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + 1:
+                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + KEY_SALT_LENGTH + 2
+                ]
+            key = raw_key[
+                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + KEY_SALT_LENGTH + 2:
+                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + KEY_SALT_LENGTH + KEY_LENGTH + 3
+                ]
+            keys_to_save += method + username_salt + username_hash + salt_key + encrypt(bytes.fromhex(key), encryptKey).hex() + "\n"
+        (build_path / "keys").write_text(keys_to_save)
         return super().after(build_path)

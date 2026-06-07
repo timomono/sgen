@@ -76,7 +76,23 @@ const generateUsername = () => "user" + Math.floor(Math.random() * 10000).toStri
             fingerprint = await getFingerprint();
         }
 
+        if (!window.crypto?.getRandomValues) throw "Browser doesn't support secure random func or it is not on secure context"
+
+        const username_salt = new Uint8Array(32);
+        crypto.getRandomValues(username_salt);
+        const hex_username_salt = Array.from(username_salt)
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+
+        const key_salt = new Uint8Array(32);
+        crypto.getRandomValues(key_salt);
+        const hex_key_salt = Array.from(key_salt)
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+
+
         const dataToHash = [
+            String.fromCharCode(...username_salt),
             await sha256(document.getElementById("username").value),
             checkedMethods.includes("password") ? await sha256(document.getElementById("password").value) : "",
             checkedMethods.includes("webauthn") ? await sha256(webAuthn) : "",
@@ -84,7 +100,9 @@ const generateUsername = () => "user" + Math.floor(Math.random() * 10000).toStri
         ].join('');
 
         const code = methodsToByte(checkedMethods)
-            + await sha256(document.getElementById("username").value)
+            + hex_username_salt
+            + await sha256(String.fromCharCode(...username_salt) + document.getElementById("username").value)
+            + hex_key_salt
             + await sha256(
                 await hashPasswordWithWorker(dataToHash)
             ); // Increase the cost to try the password like PoW
