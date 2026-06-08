@@ -11,14 +11,16 @@
 
 <body>
     <!-- Page: username input -->
-    <div class="page" id="auth_page">
+    <div class="page" id="auth_page" style="position: absolute;">
         <form action="#" id="auth_form">
-            <h1>Authorization</h1>
-            <label>
-                <h2>Username</h2>
-                <input type="text" placeholder="John Doe" id="username" autocomplete="username">
-                <div class=" error" id="username_error"></div>
-            </label>
+            <div class="form">
+                <h1>Authorization</h1>
+                <label>
+                    <h2>Username</h2>
+                    <input type="text" placeholder="John Doe" id="username" autocomplete="username">
+                    <div class=" error" id="username_error"></div>
+                </label>
+            </div>
             <button id="next_btn" type="submit">
                 <div class="spinner hidden" id="next_spinner"></div>
                 Next
@@ -27,14 +29,16 @@
     </div>
 
     <!-- Page: password input -->
-    <div class="page hidden" id="password_page">
+    <div class="page page_hidden" id="password_page" style="position: absolute;">
         <form action="#" id="password_form">
-            <h1>Password</h1>
-            <label>
-                <h2>Password</h2>
-                <input type="password" placeholder="password1234" id="password">
-                <div class="error" id="password_error"></div>
-            </label>
+            <div class="form">
+                <h1>Password</h1>
+                <label>
+                    <h2>Password</h2>
+                    <input type="password" placeholder="password1234" id="password">
+                    <div class="error" id="password_error"></div>
+                </label>
+            </div>
             <button id="auth_btn" type="submit">
                 <div class="spinner hidden" id="auth_spinner"></div>
                 Authorize

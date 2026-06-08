@@ -1,7 +1,7 @@
 body {
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 20px;
+    /* padding: 20px; */
     background: #f5f7fb;
     color: #333;
     min-height: 100vh;
@@ -12,8 +12,9 @@ body {
 }
 
 .page {
-    max-width: 520px;
+    max-width: 350px;
     width: 100%;
+    transition: transform 0.2s;
 }
 
 h1 {
@@ -50,14 +51,17 @@ label {
     cursor: pointer;
 }
 
+.form {
+    padding: 15px;
+    /* margin-top: 12px; */
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
 .page {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+    border-radius: 12px;
     border: 1px solid #e0e0e0;
     background: #fff;
-    padding: 15px;
-    margin-top: 12px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .page:hover {
@@ -67,12 +71,12 @@ label {
 
 button {
     display: inline-block;
-    padding: 10px 16px;
+    padding: 15px 16px;
     margin-top: 10px;
     border: none;
-    border-radius: 8px;
-    background: #4a90e2;
-    color: #fff;
+    border-radius: 0 0 8px 8px;
+    background: transparent;
+    color: #000;
     font-weight: bold;
     cursor: pointer;
     transition: background 0.2s, transform 0.1s;
@@ -82,10 +86,11 @@ button {
 
 button:hover {
     background: #357ab8;
+    color: white;
 }
 
 button:active {
-    transform: scale(0.97);
+    transform: scale(1.2);
 }
 
 button[disabled] {
@@ -119,6 +124,11 @@ button .spinner {
     to {
         transform: rotate(360deg);
     }
+}
+
+
+.page_hidden {
+    transform: scale(0);
 }
 
 .hidden {

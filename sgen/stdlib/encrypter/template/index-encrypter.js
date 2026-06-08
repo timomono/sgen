@@ -115,8 +115,8 @@ const main = () => {
             }
 
             // Next page
-            auth_page.classList.add("hidden")
-            password_page.classList.remove("hidden");
+            auth_page.classList.add("page_hidden")
+            password_page.classList.remove("page_hidden");
             history.pushState("", "", "")
         } else {
             // WebAuthn/Fingerprint only - verify immediately
@@ -142,11 +142,7 @@ const main = () => {
             ].join('');
 
             const computed_hash = await sha256(await hashPasswordWithWorker(dataToHash));
-            if (computed_hash === key_hash) {
-                password_error.innerText = "Authentication successful!";
-            } else {
-                password_error.innerText = "Authentication failed";
-            }
+
         }
     })
 
