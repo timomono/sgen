@@ -165,7 +165,7 @@ const main = () => {
             const auth_method = window.auth_method;
             const username_salt = encrypted_key.slice(1, 65);
             const key_salt = new Uint8Array(encrypted_key.slice(129, 161).match(/.{1,2}/g).map(b => parseInt(b, 16)));
-            const key_hash = encrypted_key.slice(193);
+            const encrypted_raw_key = encrypted_key.slice(193);
 
             const username_salt_bytes = String.fromCharCode(...new Uint8Array(username_salt.match(/.{1,2}/g).map(b => parseInt(b, 16))));
 
@@ -176,15 +176,43 @@ const main = () => {
                 auth_method.includes("fingerprint") ? await sha256(JSON.stringify(window.fingerprint)) : "",
             ].join('');
 
-            const computed_hash = await hashPasswordWithWorker(
+            const computed_hash = (await hashPasswordWithWorker(
                 dataToHash,
                 key_salt
+            )).key;
+
+            // Decrypt the encrypted key
+            const encrypted_data_hex = encrypted_key.slice(195);
+            const iv = new Uint8Array(encrypted_data_hex.slice(0, 12).match(/.{1,2}/g).map(b => parseInt(b, 16)));
+            const ciphertext = new Uint8Array(encrypted_data_hex.slice(12).match(/.{1,2}/g).map(b => parseInt(b, 16)));
+
+
+            const key = await crypto.subtle.importKey(
+                "raw",
+                computed_hash,
+                { name: "AES-GCM" },
+                false,
+                ["decrypt"]
             );
 
-            if (computed_hash === key_hash) {
+            try {
+                console.log(Array.from(iv)
+                    .map(b => b.toString(16).padStart(2, '0'))
+                    .join(''), Array.from(computed_hash)
+                        .map(b => b.toString(16).padStart(2, '0'))
+                        .join(''))
+                const decrypted = await crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv: iv },
+                    key,
+                    ciphertext
+                );
+                // console.log(decrypted)
+                const decrypted_key = new TextDecoder().decode(decrypted);
                 password_error.innerText = "Login successful!";
                 password_error.style.color = "#4a90e2";
-            } else {
+                // TODO: use decrypted_key for further actions
+            } catch (decryptErr) {
+                console.error(decryptErr)
                 password_error.innerText = "Invalid password";
                 password_error.style.color = "#e74c3c";
             }

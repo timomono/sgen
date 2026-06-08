@@ -119,6 +119,8 @@ class EncrypterMiddleware(BaseMiddleware):
                 METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + KEY_SALT_LENGTH + 2:
                 METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + KEY_SALT_LENGTH + KEY_LENGTH + 3
                 ]
-            keys_to_save += method + username_salt + username_hash + salt_key + encrypt(bytes.fromhex(key), encryptKey).hex() + "\n"
+            encryptedKey = encrypt(bytes.fromhex(key), encryptKey).hex()
+            print(encryptedKey)
+            keys_to_save += method + username_salt + username_hash + salt_key + encryptedKey + "\n"
         (build_path / "keys").write_text(keys_to_save)
         return super().after(build_path)
