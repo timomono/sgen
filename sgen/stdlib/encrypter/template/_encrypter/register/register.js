@@ -100,12 +100,17 @@ const generateUsername = () => "user" + Math.floor(Math.random() * 10000).toStri
 
         const keyHash = await hashPasswordWithWorker(dataToHash);
 
+        console.log(Array.from(keyHash.salt)
+            .map(byte => byte.toString(16).padStart(2, '0'))
+            .join('').length, Array.from(keyHash.key)
+                .map(byte => byte.toString(16).padStart(2, '0'))
+                .join('').length)
         const code = methodsToByte(checkedMethods)
             + hex_username_salt
             + await sha256(String.fromCharCode(...username_salt) + document.getElementById("username").value)
             + Array.from(keyHash.salt)
                 .map(byte => byte.toString(16).padStart(2, '0'))
-                .join('') // IMPORTANT: 32bytes
+                .join('')
             + Array.from(keyHash.key)
                 .map(byte => byte.toString(16).padStart(2, '0'))
                 .join(''); // hex

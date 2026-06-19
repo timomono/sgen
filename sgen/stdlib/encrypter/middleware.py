@@ -27,6 +27,9 @@ def encrypt(plaintext: bytes, key: bytes) -> bytes:
     ciphertext = AESGCM(key).encrypt(iv, plaintext, None)
 
     # Pack: salt(16) + iv(12) + ciphertext — then base64 for easy transport
+    print("iv, ciphertext: ", iv.hex(), len(ciphertext))
+    if len(plaintext) < 50:
+        print("plaintext", plaintext.hex())
     blob = iv + ciphertext
     return blob
 
@@ -99,7 +102,7 @@ class EncrypterMiddleware(BaseMiddleware):
             METHOD_LENGTH = 1 # bytes
             USERNAME_SALT_LENGTH = 64
             USERNAME_HASH_LENGTH = 64
-            KEY_SALT_LENGTH = 64
+            KEY_SALT_LENGTH = 32  # 16 bytes in hex
             KEY_LENGTH = 64
 
             method = raw_key[0] 
@@ -109,18 +112,19 @@ class EncrypterMiddleware(BaseMiddleware):
                 ]
             username_hash = raw_key[
                 METHOD_LENGTH + USERNAME_SALT_LENGTH:
-                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + 1
+                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH
                 ]
             salt_key = raw_key[
-                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + 1:
-                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + KEY_SALT_LENGTH + 2
+                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH:
+                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + KEY_SALT_LENGTH
                 ]
             key = raw_key[
-                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + KEY_SALT_LENGTH + 2:
-                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + KEY_SALT_LENGTH + KEY_LENGTH + 3
+                METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + KEY_SALT_LENGTH:
+                # METHOD_LENGTH + USERNAME_SALT_LENGTH + USERNAME_HASH_LENGTH + KEY_SALT_LENGTH + KEY_LENGTH + 3
                 ]
+            print("list", method, username_salt, username_hash, salt_key, key)
             encryptedKey = encrypt(bytes.fromhex(key), encryptKey).hex()
-            print(encryptedKey)
+            # print(encryptedKey, key)
             keys_to_save += method + username_salt + username_hash + salt_key + encryptedKey + "\n"
         (build_path / "keys").write_text(keys_to_save)
         return super().after(build_path)

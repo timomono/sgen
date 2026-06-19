@@ -161,7 +161,7 @@ const main = () => {
             const auth_method = window.auth_method;
             const username_salt = encrypted_key.slice(1, 65);
             const key_salt = new Uint8Array(encrypted_key.slice(129, 161).match(/.{1,2}/g).map(b => parseInt(b, 16)));
-            const encrypted_raw_key = encrypted_key.slice(193);
+            const encrypted_raw_key = encrypted_key.slice(161);
 
             const username_salt_bytes = String.fromCharCode(...new Uint8Array(username_salt.match(/.{1,2}/g).map(b => parseInt(b, 16))));
 
@@ -179,8 +179,8 @@ const main = () => {
 
             // Decrypt the encrypted key
             const encrypted_data_hex = encrypted_key.slice(195);
-            const iv = new Uint8Array(encrypted_data_hex.slice(0, 12).match(/.{1,2}/g).map(b => parseInt(b, 16)));
-            const ciphertext = new Uint8Array(encrypted_data_hex.slice(12).match(/.{1,2}/g).map(b => parseInt(b, 16)));
+            const iv = new Uint8Array(encrypted_data_hex.slice(0, 24).match(/.{1,2}/g).map(b => parseInt(b, 16)));
+            const ciphertext = new Uint8Array(encrypted_data_hex.slice(24).match(/.{1,2}/g).map(b => parseInt(b, 16)));
 
 
             const key = await crypto.subtle.importKey(
@@ -196,13 +196,15 @@ const main = () => {
                     .map(b => b.toString(16).padStart(2, '0'))
                     .join(''), Array.from(computed_hash)
                         .map(b => b.toString(16).padStart(2, '0'))
-                        .join(''))
+                        .join(''), Array.from(ciphertext)
+                            .map(b => b.toString(16).padStart(2, '0'))
+                            .join(''), encrypted_data_hex)
                 const decrypted = await crypto.subtle.decrypt(
                     { name: "AES-GCM", iv: iv },
                     key,
                     ciphertext
                 );
-                // console.log(decrypted)
+                console.log(decrypted)
                 const decrypted_key = new TextDecoder().decode(decrypted);
                 password_error.innerText = "Login successful!";
                 password_error.style.color = "#4a90e2";
