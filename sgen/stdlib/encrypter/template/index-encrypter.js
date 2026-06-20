@@ -156,71 +156,70 @@ const main = () => {
         auth_btn.disabled = true;
         auth_spinner.classList.remove("hidden")
 
-        try {
-            const encrypted_key = window.encrypted_key;
-            const auth_method = window.auth_method;
-            const username_salt = encrypted_key.slice(1, 65);
-            const key_salt = new Uint8Array(encrypted_key.slice(129, 161).match(/.{1,2}/g).map(b => parseInt(b, 16)));
-            const encrypted_raw_key = encrypted_key.slice(161);
+        // try {
+        const encrypted_key = window.encrypted_key;
+        const auth_method = window.auth_method;
+        const username_salt = encrypted_key.slice(1, 65);
+        const key_salt = new Uint8Array(encrypted_key.slice(129, 161).match(/.{1,2}/g).map(b => parseInt(b, 16)));
 
-            const username_salt_bytes = String.fromCharCode(...new Uint8Array(username_salt.match(/.{1,2}/g).map(b => parseInt(b, 16))));
+        const username_salt_bytes = String.fromCharCode(...new Uint8Array(username_salt.match(/.{1,2}/g).map(b => parseInt(b, 16))));
 
-            const dataToHash = [
-                await sha256(username_salt_bytes + username_field.value),
-                await sha256(password_field.value),
-                auth_method.includes("webAuthn") ? await sha256(JSON.stringify(window.webAuthn)) : "",
-                auth_method.includes("fingerprint") ? await sha256(JSON.stringify(window.fingerprint)) : "",
-            ].join('');
+        const dataToHash = [
+            await sha256(username_salt_bytes + username_field.value),
+            await sha256(password_field.value),
+            auth_method.includes("webAuthn") ? await sha256(JSON.stringify(window.webAuthn)) : "",
+            auth_method.includes("fingerprint") ? await sha256(JSON.stringify(window.fingerprint)) : "",
+        ].join('');
 
-            const computed_hash = (await hashPasswordWithWorker(
-                dataToHash,
-                key_salt
-            )).key;
+        const computed_hash = (await hashPasswordWithWorker(
+            dataToHash,
+            key_salt
+        )).key;
 
-            // Decrypt the encrypted key
-            const encrypted_data_hex = encrypted_key.slice(195);
-            const iv = new Uint8Array(encrypted_data_hex.slice(0, 24).match(/.{1,2}/g).map(b => parseInt(b, 16)));
-            const ciphertext = new Uint8Array(encrypted_data_hex.slice(24).match(/.{1,2}/g).map(b => parseInt(b, 16)));
+        // Decrypt the encrypted key
+        const encrypted_data_hex = encrypted_key.slice(161);
+        const iv = new Uint8Array(encrypted_data_hex.slice(0, 24).match(/.{1,2}/g).map(b => parseInt(b, 16)));
+        const ciphertext = new Uint8Array(encrypted_data_hex.slice(24).match(/.{1,2}/g).map(b => parseInt(b, 16)));
+        // console.log(computed_hash,)
 
+        const key = await crypto.subtle.importKey(
+            "raw",
+            computed_hash,
+            { name: "AES-GCM" },
+            false,
+            ["decrypt"]
+        );
 
-            const key = await crypto.subtle.importKey(
-                "raw",
-                computed_hash,
-                { name: "AES-GCM" },
-                false,
-                ["decrypt"]
-            );
-
-            try {
-                console.log(Array.from(iv)
+        // try {
+        console.log(Array.from(iv)
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join(''), Array.from(computed_hash)
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join(''), Array.from(ciphertext)
                     .map(b => b.toString(16).padStart(2, '0'))
-                    .join(''), Array.from(computed_hash)
-                        .map(b => b.toString(16).padStart(2, '0'))
-                        .join(''), Array.from(ciphertext)
-                            .map(b => b.toString(16).padStart(2, '0'))
-                            .join(''), encrypted_data_hex)
-                const decrypted = await crypto.subtle.decrypt(
-                    { name: "AES-GCM", iv: iv },
-                    key,
-                    ciphertext
-                );
-                console.log(decrypted)
-                const decrypted_key = new TextDecoder().decode(decrypted);
-                password_error.innerText = "Login successful!";
-                password_error.style.color = "#4a90e2";
-                // TODO: use decrypted_key for further actions
-            } catch (decryptErr) {
-                console.error(decryptErr)
-                password_error.innerText = "Invalid password";
-                password_error.style.color = "#e74c3c";
-            }
-        } catch (err) {
-            password_error.innerText = `Error: ${err.message}`;
-            password_error.style.color = "#e74c3c";
-        } finally {
-            auth_btn.disabled = false;
-            auth_spinner.classList.add("hidden")
-        }
+                    .join(''), encrypted_data_hex)
+        const decrypted = await crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: iv },
+            key,
+            ciphertext
+        );
+        console.log(decrypted)
+        const decrypted_key = new TextDecoder().decode(decrypted);
+        password_error.innerText = "Login successful!";
+        password_error.style.color = "#4a90e2";
+        // TODO: use decrypted_key for further actions
+        // } catch (decryptErr) {
+        //     console.error(decryptErr)
+        //     password_error.innerText = "Invalid password";
+        //     password_error.style.color = "#e74c3c";
+        // }
+        // } catch (err) {
+        //     password_error.innerText = `Error: ${err}`;
+        //     password_error.style.color = "#e74c3c";
+        // } finally {
+        //     auth_btn.disabled = false;
+        //     auth_spinner.classList.add("hidden")
+        // }
     })
 }
 

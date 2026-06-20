@@ -11,8 +11,6 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 try:
-    from cryptography.hazmat.primitives.kdf.argon2 import Argon2id
-    from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 except ImportError:
     raise ImportError(
@@ -124,6 +122,7 @@ class EncrypterMiddleware(BaseMiddleware):
                 ]
             print("list", method, username_salt, username_hash, salt_key, key)
             encryptedKey = encrypt(bytes.fromhex(key), encryptKey).hex()
+            print("encrypted:", encryptedKey)
             # print(encryptedKey, key)
             keys_to_save += method + username_salt + username_hash + salt_key + encryptedKey + "\n"
         (build_path / "keys").write_text(keys_to_save)
